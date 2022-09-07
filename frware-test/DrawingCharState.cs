@@ -2,6 +2,6 @@
 {
     internal struct DrawingCharState
     {
-        public bool changed;
+        public bool changed = false;
     }
 }

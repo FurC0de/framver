@@ -15,6 +15,9 @@ namespace frware_test
         // Position of the top-left corner of this window
         IntVector2 position = new IntVector2(0, 0);
 
+        // Title of the window
+        String title = "Untitled";
+
         // NOT USED YET
         int zindex = 1;
 
@@ -25,6 +28,10 @@ namespace frware_test
         public Window(IntVector2 size, IntVector2 position) { 
             this.size = size;
             this.position = position;
+        }
+
+        public void setTitle(String title) { 
+            this.title = title;
         }
     }
 }
