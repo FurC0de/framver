@@ -11,7 +11,7 @@ namespace frware_test
     {
         // Size is only used if window is not expanded. aka windowed mode.
         IntVector2 Size;
-        IntVector2 MinSize = new IntVector2(8, 3);
+        readonly IntVector2 MinSize = new IntVector2(8, 3);
 
         // Position of the top-left corner of this window.
         IntVector2 Position;
@@ -29,11 +29,14 @@ namespace frware_test
         // Window contents
         public DrawingChar[][]? Data;
 
+        // Window border style
+        public WindowBorderStyle BorderStyle = new WindowBorderStyle("V", "H", '1', '2', '3', '4');
+
         public Window(IntVector2 size, IntVector2 position) {}
         public Window() {}
 
         public void Init() {
-            SetSize(new IntVector2(0, 0));
+            SetSize(MinSize);
             SetPosition(new IntVector2(0, 0));
         }
 
