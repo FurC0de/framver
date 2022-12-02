@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Collections.Specialized.BitVector32;
 
 namespace frware_test
 {
@@ -57,6 +58,7 @@ namespace frware_test
 
             return dirtySectors;
         }
+
 
         public void AcceptDirty() {
             this.States = JaggedArrayCreator.CreateJaggedArray<DrawingCharState[][]>(Size.X, Size.Y);
@@ -155,6 +157,20 @@ namespace frware_test
             }
 
             return renderedString;
+        }
+
+        public static DoubleDrawingBuffer operator +(DoubleDrawingBuffer global, DoubleDrawingBuffer layer)
+        {
+            List<Tuple<IntVector2, int>> dirty = layer.CheckDirty();
+
+            foreach (Tuple<IntVector2, int> line in dirty) {
+                Array.Copy(layer.DrawingChars[line.Item1.Y], line.Item1.X, global.DrawingChars[line.Item1.Y], line.Item1.X, line.Item2);
+                Array.Copy(layer.States[line.Item1.Y], line.Item1.X, global.States[line.Item1.Y], line.Item1.X, line.Item2);
+            }
+
+            layer.AcceptDirty();
+
+            return global;
         }
     }
 }

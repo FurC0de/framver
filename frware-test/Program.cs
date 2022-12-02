@@ -104,8 +104,8 @@ namespace frware_test {
             DataClock.Start();
 
             Renderer.DrawLine(coords0, ("#AAAAAA", " ╔═ Coordinates ══════════════╗"));
-            Renderer.DrawLine(coords1, ("#AAAAAA", " ║ y" + Renderer.buffer.DrawingChars.Length.ToString() + "  ;"));
-            Renderer.DrawLine(coords2, ("#AAAAAA", " ║ x" + Renderer.buffer.DrawingChars[0].Length.ToString() + "  ;"));
+            Renderer.DrawLine(coords1, ("#AAAAAA", " ║ y" + Renderer.Buffer.DrawingChars.Length.ToString() + "  ;"));
+            Renderer.DrawLine(coords2, ("#AAAAAA", " ║ x" + Renderer.Buffer.DrawingChars[0].Length.ToString() + "  ;"));
             Renderer.DrawLine(coords3, ("#AAAAAA", " ╚════════════════════════════╝"));
 
             Window testWindow1 = new Window(new IntVector2(22,8), new IntVector2(3, 6));
