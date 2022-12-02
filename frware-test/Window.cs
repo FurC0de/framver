@@ -58,6 +58,7 @@ namespace frware_test
         public void SetTitle(String title) {
             this.Title = title;
             Border.SetTitle(title);
+            Border.Update();
         }
     }
 }

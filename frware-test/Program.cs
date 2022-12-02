@@ -79,9 +79,30 @@ namespace frware_test {
             Renderer.DrawLine(coords2, ("#AAAAAA", " ║ x" + Renderer.buffer.DrawingChars[0].Length.ToString() + "  ;"));
             Renderer.DrawLine(coords3, ("#AAAAAA", " ╚════════════════════════════╝"));
 
-            Window testWindow = new Window(new IntVector2(22,8), new IntVector2(3,6));
-            testWindow.Init();
-            Renderer.DrawWindow(testWindow);
+            Window testWindow1 = new Window(new IntVector2(22,8), new IntVector2(3,6));
+            testWindow1.Init();
+            testWindow1.SetTitle("Title");
+            Renderer.DrawWindow(testWindow1);
+
+            Window testWindow2 = new Window(new IntVector2(6, 8), new IntVector2(3, 16));
+            testWindow2.Init();
+            testWindow2.SetTitle("Title");
+            Renderer.DrawWindow(testWindow2);
+
+            Window testWindow3 = new Window(new IntVector2(7, 8), new IntVector2(3, 26));
+            testWindow3.Init();
+            testWindow3.SetTitle("Title");
+            Renderer.DrawWindow(testWindow3);
+
+            Window testWindow4 = new Window(new IntVector2(8, 8), new IntVector2(3, 36));
+            testWindow4.Init();
+            testWindow4.SetTitle("Title");
+            Renderer.DrawWindow(testWindow4);
+
+            Window testWindow5 = new Window(new IntVector2(9, 8), new IntVector2(3, 46));
+            testWindow5.Init();
+            testWindow5.SetTitle("Title");
+            Renderer.DrawWindow(testWindow5);
 
             while (true)
             {
