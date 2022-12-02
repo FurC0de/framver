@@ -11,7 +11,7 @@ namespace frware_test
     {
         public DoubleDrawingBuffer Buffer;
 
-        public List<DrawingLayer> Layers;
+        public List<DrawingLayer> Layers = new List<DrawingLayer>();
 
         public Renderer(IntVector2 size)
         {
@@ -62,6 +62,7 @@ namespace frware_test
         public void Draw()
         {
             bool anyUpdates = false;
+            
             foreach (DrawingLayer layer in Layers)
             {
                 if (layer.Updated)

@@ -25,11 +25,13 @@ namespace frware_test {
             //Console.WriteLine("HELLO");
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-            if (Console.BufferWidth < Size.X)
-                Console.BufferWidth = Size.X;
+            Console.SetBufferSize(Size.X, Size.Y);
 
-            if (Console.BufferHeight > Size.Y)
-                Console.BufferHeight = Size.Y;
+            //if (Console.BufferWidth < Size.X)
+            //    Console.BufferWidth = Size.X;
+
+            //if (Console.BufferHeight > Size.Y)
+            //    Console.BufferHeight = Size.Y;
 
             ConsoleUtilities.MakeBorderless();
             ConsoleUtilities.DisableQuickEdit();
