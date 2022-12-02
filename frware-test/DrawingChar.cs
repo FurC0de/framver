@@ -9,10 +9,10 @@ namespace frware_test
 {
     internal struct DrawingChar
     {
-        string letter = "";
-        string color = "";
+        public char letter;
+        public string color;
 
-        public DrawingChar(string letter, string color)
+        public DrawingChar(char letter, string color)
         {
             this.letter = letter;
             this.color = color;

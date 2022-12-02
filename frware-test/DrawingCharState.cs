@@ -2,6 +2,11 @@
 {
     internal struct DrawingCharState
     {
-        public bool changed = false;
+        public bool changed;
+
+        public DrawingCharState(bool changed)
+        {
+            this.changed = changed;
+        }
     }
 }
