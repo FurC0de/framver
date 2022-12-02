@@ -90,8 +90,8 @@ namespace frware_test {
 
                 // WEIRD FIX: Fixes stutter.
                 Console.MoveBufferArea(0,0,0,0,0,0); 
-                Console.SetCursorPosition(0, 0);
 
+                //Console.SetCursorPosition(80, 50);
                 //Console.WriteLine("DATA "+dataClock.Elapsed.TotalMilliseconds);
             }
         }
