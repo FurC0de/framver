@@ -9,13 +9,13 @@ namespace frware_test
 {
     internal struct DrawingChar
     {
-        public char letter;
-        public string color;
+        public char Letter;
+        public string Color;
 
         public DrawingChar(char letter, string color)
         {
-            this.letter = letter;
-            this.color = color;
+            this.Letter = letter;
+            this.Color = color;
         }
     }
 }

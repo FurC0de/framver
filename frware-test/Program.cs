@@ -7,10 +7,16 @@ using System.Threading;
 namespace frware_test {
     internal class Program
     {
-        public static IntVector2 size = new IntVector2(120, 80);
-        public static Renderer renderer = new Renderer(size);
-        public static GameClock renderClock = new GameClock();
-        public static GameClock dataClock = new GameClock();
+        #region Renderer
+        public static IntVector2 Size = new IntVector2(120, 80);
+        public static Renderer Renderer = new Renderer(Size);
+        #endregion
+
+        #region Clocks
+        public static GameClock RenderClock = new GameClock();
+        public static GameClock DataClock = new GameClock();
+        #endregion
+
         static void Main() {
 
             Console.OutputEncoding = System.Text.Encoding.UTF8;
@@ -34,7 +40,7 @@ namespace frware_test {
             Thread testDataThread = new Thread(() => testDataThreadFunc());
             testDataThread.Start();
 
-            Thread testRefreshThread = new Thread(() => testRefreshThreadFunc());
+            Thread testRefreshThread = new Thread(() => TestRefreshThreadFunc());
             testRefreshThread.Start();
 
             while(true)
@@ -66,32 +72,37 @@ namespace frware_test {
             IntVector2 coords3 = new IntVector2(0, 3);
             IntVector2 coords4 = new IntVector2(3, 4);
 
-            dataClock.Start();
+            DataClock.Start();
+
+            Renderer.DrawLine(coords0, ("#AAAAAA", " ╔═ Coordinates ══════════════╗"));
+            Renderer.DrawLine(coords1, ("#AAAAAA", " ║ y" + Renderer.buffer.DrawingChars.Length.ToString() + "  ;"));
+            Renderer.DrawLine(coords2, ("#AAAAAA", " ║ x" + Renderer.buffer.DrawingChars[0].Length.ToString() + "  ;"));
+            Renderer.DrawLine(coords3, ("#AAAAAA", " ╚════════════════════════════╝"));
+
             while (true)
             {
-                dataClock.Step();
-                renderer.addLine(coords0, ("#AAAAAA", " ╔═ Coordinates ══════════════╗"));
-                renderer.addLine(coords1, ("#AAAAAA", " ║ y" + renderer.buffer.drawingChars.Length.ToString() + "  ;"));
-                renderer.addLine(coords2, ("#AAAAAA", " ║ x" + renderer.buffer.drawingChars[0].Length.ToString() + "  ;"));
-                renderer.addLine(coords3, ("#AAAAAA", " ╚════════════════════════════╝"));
-                renderer.addLine(coords4, spectrum[testInt]);
+                DataClock.Step();
+                
+                Renderer.DrawLine(coords4, spectrum[testInt]);
 
                 testInt = (testInt + 1) % 10;
-                Thread.Sleep(100);
+                Thread.Sleep(60);
 
-                Console.MoveBufferArea(0,0,0,0,0,0);
+                // WEIRD FIX: Fixes stutter.
+                Console.MoveBufferArea(0,0,0,0,0,0); 
+
                 //Console.SetCursorPosition(80, 50);
                 //Console.WriteLine("DATA "+dataClock.Elapsed.TotalMilliseconds);
             }
         }
 
-        static public void testRefreshThreadFunc() {
-            renderClock.Start();
+        static public void TestRefreshThreadFunc() {
+            RenderClock.Start();
             while (true)
             {
-                renderClock.Step();
+                RenderClock.Step();
                 Thread.Sleep(15);
-                renderer.draw();
+                Renderer.Draw();
                 //Console.SetCursorPosition(0, 0);
                 //Console.WriteLine("DRAW " + renderClock.Elapsed.TotalMilliseconds);
             }

@@ -11,35 +11,35 @@ namespace frware_test
 {
     internal class DoubleDrawingBuffer
     {
-        public IntVector2 size;
-        public DrawingChar[][] drawingChars;
-        public DrawingChar[][] oldDrawingChars;
-        public DrawingCharState[][] states;
+        public IntVector2 Size;
+        public DrawingChar[][] DrawingChars;
+        public DrawingChar[][] OldDrawingChars;
+        public DrawingCharState[][] States;
 
         public DoubleDrawingBuffer(IntVector2 size) {
-            this.size = size;
-            this.drawingChars = JaggedArrayCreator.CreateJaggedArray<DrawingChar[][]>(new int[] { size.X, size.Y } );
-            this.oldDrawingChars = JaggedArrayCreator.CreateJaggedArray<DrawingChar[][]>(new int[] { size.X, size.Y });
-            this.states = JaggedArrayCreator.CreateJaggedArray<DrawingCharState[][]>(new int[] { size.X, size.Y });
+            this.Size = size;
+            this.DrawingChars = JaggedArrayCreator.CreateJaggedArray<DrawingChar[][]>(new int[] { size.X, size.Y } );
+            this.OldDrawingChars = JaggedArrayCreator.CreateJaggedArray<DrawingChar[][]>(new int[] { size.X, size.Y });
+            this.States = JaggedArrayCreator.CreateJaggedArray<DrawingCharState[][]>(new int[] { size.X, size.Y });
 
             System.Diagnostics.Debug.WriteLine("created jagged arrays of length: dc({0},{1}) odc({2},{3}) s({4},{5})", 
-                drawingChars.Length, drawingChars[0].Length,
-                oldDrawingChars.Length, oldDrawingChars[0].Length,
-                states.Length, states[0].Length);
+                DrawingChars.Length, DrawingChars[0].Length,
+                OldDrawingChars.Length, OldDrawingChars[0].Length,
+                States.Length, States[0].Length);
         }
 
-        public List<Tuple<IntVector2, int>> checkDirty() {
+        public List<Tuple<IntVector2, int>> CheckDirty() {
             List<Tuple<IntVector2, int>> dirtySectors = new List<Tuple<IntVector2, int>>(); // Coords, length
 
-            for (int y = 0; y < states.Length; y++) {
+            for (int y = 0; y < States.Length; y++) {
                 int db = -1;
                 int de = -1;
 
                 //System.Diagnostics.Debug.WriteLine("states[y].Length is {0}", states[y].Length);
 
-                for (int x = 0; x < states[y].Length; x++) {
+                for (int x = 0; x < States[y].Length; x++) {
                     //System.Diagnostics.Debug.Write("("+x+")");
-                    if (states[y][x].changed) {
+                    if (States[y][x].Changed) {
                         //System.Diagnostics.Debug.Write(" => "+x);
                         if (db == -1)
                             db = x;
@@ -58,21 +58,21 @@ namespace frware_test
             return dirtySectors;
         }
 
-        public void acceptDirty() {
-            this.states = JaggedArrayCreator.CreateJaggedArray<DrawingCharState[][]>(size.X, size.Y);
+        public void AcceptDirty() {
+            this.States = JaggedArrayCreator.CreateJaggedArray<DrawingCharState[][]>(Size.X, Size.Y);
         }
 
-        public void drawLine(IntVector2 coords, DrawingChar[] line) {
+        public void DrawLine(IntVector2 coords, DrawingChar[] line) {
             for (int x = coords.X; x < line.Length+line.Length; x++) {
-                states[coords.Y][x].changed = true;
+                States[coords.Y][x].Changed = true;
             }
 
             //System.Diagnostics.Debug.WriteLine("setting {0} chars as dirty", line.Length);
 
-            Array.Copy(line, 0, drawingChars[coords.Y], coords.X, line.Length);
+            Array.Copy(line, 0, DrawingChars[coords.Y], coords.X, line.Length);
         }
 
-        public String getLine(IntVector2 coords, int length)
+        public String GetLine(IntVector2 coords, int length)
         {
             String renderedString = "";
 
@@ -80,18 +80,18 @@ namespace frware_test
             String solidCCA = "";
 
             for (int x = coords.X; x < coords.X + length; x++) {
-                DrawingChar dchar = drawingChars[coords.Y][x];
+                DrawingChar dchar = DrawingChars[coords.Y][x];
 
-                if (dchar.color == solidCLR) {
-                    solidCCA += dchar.letter;
+                if (dchar.Color == solidCLR) {
+                    solidCCA += dchar.Letter;
                 } else {
                     if (solidCCA != "" && solidCLR != "" && solidCCA != null && solidCLR != null) {
                         renderedString += solidCCA.Pastel(solidCLR);
                     }
 
-                    solidCLR = dchar.color;
+                    solidCLR = dchar.Color;
                     solidCCA = "";
-                    solidCCA += dchar.letter;
+                    solidCCA += dchar.Letter;
                 }
             }
 

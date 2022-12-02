@@ -10,46 +10,47 @@ namespace frware_test
     internal class Window
     {
         // Size is only used if window is not expanded. aka windowed mode.
-        IntVector2 size;
-        IntVector2 minSize = new IntVector2(8, 3);
+        IntVector2 Size;
+        IntVector2 MinSize = new IntVector2(8, 3);
 
-        // Position of the top-left corner of this window
-        IntVector2 position;
+        // Position of the top-left corner of this window.
+        IntVector2 Position;
 
         // Title of the window
-        String title = "Untitled";
+        String Title = "Untitled";
 
         // FIXME: NOT USED YET
-        int zindex = 1;
+        int ZIndex = 1;
 
         // FIXME: NOT USED YET
         // Is this window expanded. This means window will flood all the free space.
-        bool expanded = false;
+        bool Expanded = false;
 
-        public DrawingChar[][] data;
+        // Window contents
+        public DrawingChar[][]? Data;
 
         public Window(IntVector2 size, IntVector2 position) {}
         public Window() {}
 
-        public void initialize() {
-            setSize(new IntVector2(0, 0));
-            setPosition(new IntVector2(0, 0));
+        public void Init() {
+            SetSize(new IntVector2(0, 0));
+            SetPosition(new IntVector2(0, 0));
         }
 
-        public void setSize(IntVector2 size) {
-            this.size = size;
-            data = JaggedArrayCreator.CreateJaggedArray<DrawingChar[][]>(new int[] { size.X, size.Y });
+        public void SetSize(IntVector2 size) {
+            this.Size = size;
+            Data = JaggedArrayCreator.CreateJaggedArray<DrawingChar[][]>(new int[] { size.X, size.Y });
         }
 
-        public void setPosition(IntVector2 position) {
-            this.position = position;
+        public void SetPosition(IntVector2 position) {
+            this.Position = position;
         }
 
-        public void setTitle(String title) {
-            this.title = title;
+        public void SetTitle(String title) {
+            this.Title = title;
         }
 
-        public void getLine(int index) { 
+        public void GetLine(int index) { 
         }
     }
 }

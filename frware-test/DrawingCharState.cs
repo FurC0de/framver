@@ -2,11 +2,11 @@
 {
     internal struct DrawingCharState
     {
-        public bool changed;
+        public bool Changed;
 
         public DrawingCharState(bool changed)
         {
-            this.changed = changed;
+            this.Changed = changed;
         }
     }
 }
