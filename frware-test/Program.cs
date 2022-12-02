@@ -15,6 +15,7 @@ namespace frware_test {
         #region Clocks
         public static GameClock RenderClock = new GameClock();
         public static GameClock DataClock = new GameClock();
+        public static GameClock InputClock = new GameClock();
         #endregion
 
         static void Main() {
@@ -30,7 +31,7 @@ namespace frware_test {
             if (Console.BufferHeight > Size.Y)
                 Console.BufferHeight = Size.Y;
 
-            ConsoleUtilities.Borderless();
+            ConsoleUtilities.MakeBorderless();
 
             var spectrum = new (string color, string letter)[]
             {
@@ -46,21 +47,36 @@ namespace frware_test {
                 ("#BBE9E6", "k")
             };
 
-           // Console.WriteLine(string.Join("", spectrum.Select(s => s.letter.Pastel(s.color))));
+            // Console.WriteLine(string.Join("", spectrum.Select(s => s.letter.Pastel(s.color))));
+            CancellationTokenSource cancelSource = new CancellationTokenSource();
 
-            Thread testDataThread = new Thread(() => testDataThreadFunc());
+            Thread testDataThread = new Thread(() => testDataThreadFunc(cancelSource.Token));
             testDataThread.Start();
 
-            Thread testRefreshThread = new Thread(() => TestRefreshThreadFunc());
+            Thread testRefreshThread = new Thread(() => TestRefreshThreadFunc(cancelSource.Token));
             testRefreshThread.Start();
 
-            while(true)
+
+            while (true)
             {
-                Thread.Sleep(100);
+                if (NativeKeyboard.IsKeyDown(KeyCode.Escape))
+                {
+                    if (testDataThread.ThreadState == ThreadState.Running || testRefreshThread.ThreadState == ThreadState.Running)
+                    {
+                        if (!cancelSource.IsCancellationRequested)
+                            cancelSource.Cancel();
+                    }
+                    else
+                    {
+                        ConsoleUtilities.DisableBorderless();
+                        Environment.Exit(0);
+                    }
+                }
+                Thread.Sleep(20);
             }
         }
 
-        static public void testDataThreadFunc() {
+        static public void testDataThreadFunc(CancellationToken cancelToken) {
             var spectrum = new (string color, string line)[]
             {
                 ("#124542", "abcdefghij"),
@@ -108,6 +124,11 @@ namespace frware_test {
 
             while (true)
             {
+                if (cancelToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 DataClock.Step();
                 
                 Renderer.DrawLine(coords4, spectrum[testInt]);
@@ -123,10 +144,15 @@ namespace frware_test {
             }
         }
 
-        static public void TestRefreshThreadFunc() {
+        static public void TestRefreshThreadFunc(CancellationToken cancelToken) {
             RenderClock.Start();
             while (true)
             {
+                if (cancelToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 RenderClock.Step();
                 Thread.Sleep(30);
                 Renderer.Draw();
