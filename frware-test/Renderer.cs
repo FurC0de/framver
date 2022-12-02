@@ -38,12 +38,12 @@ namespace frware_test
                 return;
 
             buffer.DrawChar(window.Position, (DrawingChar)window.Border.CornerTopLeft);
-            buffer.DrawChar(window.Position + (window.Size.X, 0), (DrawingChar)window.Border.CornerTopRight);
-            buffer.DrawChar(window.Position + (window.Size.X, window.Size.Y-1), (DrawingChar)window.Border.CornerBottomRight);
+            buffer.DrawChar(window.Position + (window.Size.X-1, 0), (DrawingChar)window.Border.CornerTopRight);
+            buffer.DrawChar(window.Position + (window.Size.X-1, window.Size.Y-1), (DrawingChar)window.Border.CornerBottomRight);
             buffer.DrawChar(window.Position + (0, window.Size.Y-1), (DrawingChar)window.Border.CornerBottomLeft);
 
             buffer.DrawVLine(window.Position + (0, 1), window.Border.Left);
-            buffer.DrawVLine(window.Position + (window.Size.X, 1), window.Border.Right);
+            buffer.DrawVLine(window.Position + (window.Size.X-1, 1), window.Border.Right);
 
             buffer.DrawLine(window.Position + (1, 0), window.Border.Top);
             buffer.DrawLine(window.Position + (1, window.Size.Y-1), window.Border.Bottom);

@@ -8,7 +8,7 @@ namespace frware_test {
     internal class Program
     {
         #region Renderer
-        public static IntVector2 Size = new IntVector2(120, 80);
+        public static IntVector2 Size = new IntVector2(120, 60);
         public static Renderer Renderer = new Renderer(Size);
         #endregion
 
@@ -80,14 +80,14 @@ namespace frware_test {
             Renderer.DrawLine(coords2, ("#AAAAAA", " ║ x" + Renderer.buffer.DrawingChars[0].Length.ToString() + "  ;"));
             Renderer.DrawLine(coords3, ("#AAAAAA", " ╚════════════════════════════╝"));
 
-            Window testWindow1 = new Window(new IntVector2(22,8), new IntVector2(3,6));
+            Window testWindow1 = new Window(new IntVector2(22,8), new IntVector2(3, 6));
             testWindow1.Init();
-            testWindow1.SetTitle("Title");
+            testWindow1.SetTitle("Title_A");
             Renderer.DrawWindow(testWindow1);
 
-            Window testWindow2 = new Window(new IntVector2(6, 8), new IntVector2(3, 16));
+            Window testWindow2 = new Window(new IntVector2(22, 8), new IntVector2(12, 10));
             testWindow2.Init();
-            testWindow2.SetTitle("Title");
+            testWindow2.SetTitle("Title_B");
             Renderer.DrawWindow(testWindow2);
 
             Window testWindow3 = new Window(new IntVector2(7, 8), new IntVector2(3, 26));
@@ -95,15 +95,6 @@ namespace frware_test {
             testWindow3.SetTitle("Title");
             Renderer.DrawWindow(testWindow3);
 
-            Window testWindow4 = new Window(new IntVector2(8, 8), new IntVector2(3, 36));
-            testWindow4.Init();
-            testWindow4.SetTitle("Title");
-            Renderer.DrawWindow(testWindow4);
-
-            Window testWindow5 = new Window(new IntVector2(9, 8), new IntVector2(3, 46));
-            testWindow5.Init();
-            testWindow5.SetTitle("Title");
-            Renderer.DrawWindow(testWindow5);
 
             while (true)
             {
@@ -127,7 +118,7 @@ namespace frware_test {
             while (true)
             {
                 RenderClock.Step();
-                Thread.Sleep(60);
+                Thread.Sleep(30);
                 Renderer.Draw();
                 //Console.SetCursorPosition(0, 0);
                 //Console.WriteLine("DRAW " + renderClock.Elapsed.TotalMilliseconds);

@@ -72,7 +72,7 @@ namespace frware_test
         public void DrawLine(IntVector2 coords, DrawingChar[] line) {
             for (int x = 0; x < line.Length; x++) {
                 States[coords.Y][x + coords.X].Changed = true;
-                System.Diagnostics.Debug.WriteLine($"Setting {x+coords.X},{coords.Y} as dirty ('{line[x].Letter}')");
+                //System.Diagnostics.Debug.WriteLine($"Setting {x+coords.X},{coords.Y} as dirty ('{line[x].Letter}')");
             }
 
             //System.Diagnostics.Debug.WriteLine("setting {0} chars as dirty", line.Length);
@@ -94,7 +94,7 @@ namespace frware_test
 
             String solidCLR = "";
             String solidCCA = "";
-
+            System.Diagnostics.Debug.WriteLine("");
             for (int x = coords.X; x < coords.X + length; x++) {
                 DrawingChar dchar = DrawingChars[coords.Y][x];
                 //System.Diagnostics.Debug.WriteLine($"Is DrawingChar.Letter null/0 {dchar.Letter == null}/{dchar.Letter == '\0'}");
@@ -102,9 +102,11 @@ namespace frware_test
                 if (dchar.Letter == '\0') { 
                     renderedString += " ";
                     //System.Diagnostics.Debug.WriteLine($"Got DrawingChar '\\0' ({dchar.Color}) on {x},{coords.Y}");
+                    System.Diagnostics.Debug.Write($"0 ");
                 } else
                 {
                     //System.Diagnostics.Debug.WriteLine($"Got DrawingChar '{dchar.Letter}' ({dchar.Color}) on {x},{coords.Y}");
+                    System.Diagnostics.Debug.Write($"{dchar.Letter} ");
                 }
 
                 
