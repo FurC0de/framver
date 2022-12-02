@@ -20,8 +20,13 @@ namespace frware_test {
         static void Main() {
 
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-            Console.BufferWidth = Size.X;
-            Console.BufferHeight = Size.Y;
+
+            if (Console.BufferWidth < Size.X)
+                Console.BufferWidth = Size.X;
+
+            if (Console.BufferHeight < Size.Y)
+                Console.BufferHeight = Size.Y;
+
             var spectrum = new (string color, string letter)[]
             {
                 ("#124542", "a"),
@@ -85,7 +90,7 @@ namespace frware_test {
             testWindow1.SetTitle("Title_A");
             Renderer.DrawWindow(testWindow1);
 
-            Window testWindow2 = new Window(new IntVector2(22, 8), new IntVector2(12, 10));
+            Window testWindow2 = new Window(new IntVector2(110, 50), new IntVector2(10, 10));
             testWindow2.Init();
             testWindow2.SetTitle("Title_B");
             Renderer.DrawWindow(testWindow2);
