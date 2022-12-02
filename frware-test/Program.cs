@@ -79,11 +79,15 @@ namespace frware_test {
             Renderer.DrawLine(coords2, ("#AAAAAA", " ║ x" + Renderer.buffer.DrawingChars[0].Length.ToString() + "  ;"));
             Renderer.DrawLine(coords3, ("#AAAAAA", " ╚════════════════════════════╝"));
 
+            Window testWindow = new Window(new IntVector2(10,6), new IntVector2(3,6));
+            testWindow.Init();
+            Renderer.DrawWindow(testWindow);
+
             while (true)
             {
                 DataClock.Step();
                 
-                Renderer.DrawLine(coords4, spectrum[testInt]);
+                //Renderer.DrawLine(coords4, spectrum[testInt]);
 
                 testInt = (testInt + 1) % 10;
                 Thread.Sleep(60);
@@ -101,7 +105,7 @@ namespace frware_test {
             while (true)
             {
                 RenderClock.Step();
-                Thread.Sleep(15);
+                Thread.Sleep(500);
                 Renderer.Draw();
                 //Console.SetCursorPosition(0, 0);
                 //Console.WriteLine("DRAW " + renderClock.Elapsed.TotalMilliseconds);

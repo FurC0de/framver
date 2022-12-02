@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -10,11 +11,11 @@ namespace frware_test
     internal class Window
     {
         // Size is only used if window is not expanded. aka windowed mode.
-        IntVector2 Size;
+        public IntVector2 Size;
         internal readonly static IntVector2 s_MinSize = new IntVector2(8, 3);
 
         // Position of the top-left corner of this window.
-        IntVector2 Position;
+        public IntVector2 Position;
 
         // Title of the window
         String Title = "Untitled";
@@ -30,14 +31,18 @@ namespace frware_test
         public DrawingChar[][]? Data;
 
         // Window border.
-        public WindowBorder Border = new WindowBorder(s_MinSize);
+        public WindowBorder Border;
 
-        public Window(IntVector2 size, IntVector2 position) {}
-        public Window() {}
+        public Window(IntVector2 size, IntVector2 position) {
+            Size = size;
+            Position = position;
+            Border = new WindowBorder(s_MinSize);
+        }
 
         public void Init() {
-            SetSize(s_MinSize);
-            SetPosition(new IntVector2(0, 0));
+            SetSize(Size);
+            SetPosition(Position);
+            Border.Update();
         }
 
         public void SetSize(IntVector2 size) {
@@ -52,6 +57,7 @@ namespace frware_test
 
         public void SetTitle(String title) {
             this.Title = title;
+            Border.SetTitle(title);
         }
     }
 }

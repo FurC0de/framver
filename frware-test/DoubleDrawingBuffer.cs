@@ -50,8 +50,8 @@ namespace frware_test
                 }
 
                 if (db != -1) {
-                    dirtySectors.Add(new Tuple<IntVector2, int>(new IntVector2(db, y), de - db));
-                    //System.Diagnostics.Debug.WriteLine("adding dirty sector: from {0} to {1} of len {2}, on coords ({3} {4})", db, de, de - db, db, y);
+                    dirtySectors.Add(new Tuple<IntVector2, int>(new IntVector2(db, y), de - db + 1));
+                    System.Diagnostics.Debug.WriteLine("adding dirty sector: from {0} to {1} of len {2}, on coords ({3} {4})", db, de, de - db, db, y);
                 }
             }
 
@@ -62,12 +62,31 @@ namespace frware_test
             this.States = JaggedArrayCreator.CreateJaggedArray<DrawingCharState[][]>(Size.X, Size.Y);
         }
 
+        public void DrawChar(IntVector2 coords, DrawingChar character)
+        {
+            States[coords.Y][coords.X].Changed = true;
+            DrawingChars[coords.Y][coords.X] = character;
+
+            System.Diagnostics.Debug.WriteLine($"Drawing char {character.Letter} {character.Color} at {coords.X}, {coords.Y}");
+        }
+
         public void DrawLine(IntVector2 coords, DrawingChar[] line) {
-            for (int x = coords.X; x < line.Length+line.Length; x++) {
-                States[coords.Y][x].Changed = true;
+            for (int x = 0; x <= line.Length; x++) {
+                States[coords.Y][x + coords.X].Changed = true;
             }
 
-            //System.Diagnostics.Debug.WriteLine("setting {0} chars as dirty", line.Length);
+            System.Diagnostics.Debug.WriteLine("setting {0} chars as dirty", line.Length);
+
+            Array.Copy(line, 0, DrawingChars[coords.Y], coords.X, line.Length);
+        }
+
+        public void DrawVLine(IntVector2 coords, DrawingChar[] line)
+        {
+            for (int y = 0; y < line.Length; y++)
+            {
+                States[y + coords.Y][coords.X].Changed = true;
+                DrawingChars[y + coords.Y][coords.X] = line[y];
+            }
 
             Array.Copy(line, 0, DrawingChars[coords.Y], coords.X, line.Length);
         }
@@ -81,10 +100,17 @@ namespace frware_test
 
             for (int x = coords.X; x < coords.X + length; x++) {
                 DrawingChar dchar = DrawingChars[coords.Y][x];
+                //System.Diagnostics.Debug.WriteLine($"Is DrawingChar.Letter null/0 {dchar.Letter == null}/{dchar.Letter == '\0'}");
+                //System.Diagnostics.Debug.WriteLine($"Is DrawingChar.Color null/empty {dchar.Color == null}/{dchar.Color == ""}");
+                //System.Diagnostics.Debug.WriteLine($"Got DrawingChar '{dchar.Letter}' ({dchar.Color}) on {coords.X},{coords.Y}");
+
+                if (dchar.Letter == '\0')
+                    renderedString += " ";
 
                 if (dchar.Color == solidCLR) {
                     solidCCA += dchar.Letter;
                 } else {
+
                     if (solidCCA != "" && solidCLR != "" && solidCCA != null && solidCLR != null) {
                         renderedString += solidCCA.Pastel(solidCLR);
                     }
