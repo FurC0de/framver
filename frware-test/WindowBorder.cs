@@ -66,7 +66,7 @@
             Bottom = new DrawingChar[Size.X - 2];
 
             // TODO: Add pattern alternating.
-            for (int x = 0; x < Size.Y - 2; x++)
+            for (int x = 0; x < Size.X - 2; x++)
             {
                 Top[x] = new DrawingChar(Style.Horizontal[0], "#FFFFFF");
                 Bottom[x] = new DrawingChar(Style.Horizontal[0], "#FFFFFF");

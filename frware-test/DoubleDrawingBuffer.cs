@@ -71,11 +71,12 @@ namespace frware_test
         }
 
         public void DrawLine(IntVector2 coords, DrawingChar[] line) {
-            for (int x = 0; x <= line.Length; x++) {
+            for (int x = 0; x < line.Length; x++) {
                 States[coords.Y][x + coords.X].Changed = true;
+                System.Diagnostics.Debug.WriteLine($"Setting {x+coords.X},{coords.Y} as dirty ('{line[x].Letter}')");
             }
 
-            System.Diagnostics.Debug.WriteLine("setting {0} chars as dirty", line.Length);
+            //System.Diagnostics.Debug.WriteLine("setting {0} chars as dirty", line.Length);
 
             Array.Copy(line, 0, DrawingChars[coords.Y], coords.X, line.Length);
         }
@@ -87,8 +88,6 @@ namespace frware_test
                 States[y + coords.Y][coords.X].Changed = true;
                 DrawingChars[y + coords.Y][coords.X] = line[y];
             }
-
-            Array.Copy(line, 0, DrawingChars[coords.Y], coords.X, line.Length);
         }
 
         public String GetLine(IntVector2 coords, int length)
@@ -102,10 +101,17 @@ namespace frware_test
                 DrawingChar dchar = DrawingChars[coords.Y][x];
                 //System.Diagnostics.Debug.WriteLine($"Is DrawingChar.Letter null/0 {dchar.Letter == null}/{dchar.Letter == '\0'}");
                 //System.Diagnostics.Debug.WriteLine($"Is DrawingChar.Color null/empty {dchar.Color == null}/{dchar.Color == ""}");
-                //System.Diagnostics.Debug.WriteLine($"Got DrawingChar '{dchar.Letter}' ({dchar.Color}) on {coords.X},{coords.Y}");
-
-                if (dchar.Letter == '\0')
+                if (dchar.Letter == '\0') { 
                     renderedString += " ";
+                    System.Diagnostics.Debug.WriteLine($"Got DrawingChar '\\0' ({dchar.Color}) on {x},{coords.Y}");
+                } else
+                {
+                    System.Diagnostics.Debug.WriteLine($"Got DrawingChar '{dchar.Letter}' ({dchar.Color}) on {x},{coords.Y}");
+                }
+
+                
+
+                
 
                 if (dchar.Color == solidCLR) {
                     solidCCA += dchar.Letter;

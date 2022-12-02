@@ -37,16 +37,17 @@ namespace frware_test
             if (window.Data == null)
                 return;
 
-            //buffer.DrawVLine(window.Position + (0, 1), window.Border.Left);
-            //buffer.DrawVLine(window.Position + (window.Size.X, 1), window.Border.Right);
+            buffer.DrawChar(window.Position, (DrawingChar)window.Border.CornerTopLeft);
+            buffer.DrawChar(window.Position + (window.Size.X, 0), (DrawingChar)window.Border.CornerTopRight);
+            buffer.DrawChar(window.Position + (window.Size.X, window.Size.Y-1), (DrawingChar)window.Border.CornerBottomRight);
+            buffer.DrawChar(window.Position + (0, window.Size.Y-1), (DrawingChar)window.Border.CornerBottomLeft);
+
+            buffer.DrawVLine(window.Position + (0, 1), window.Border.Left);
+            buffer.DrawVLine(window.Position + (window.Size.X, 1), window.Border.Right);
 
             buffer.DrawLine(window.Position + (1, 0), window.Border.Top);
-            buffer.DrawLine(window.Position + (1, window.Size.Y), window.Border.Bottom);
+            buffer.DrawLine(window.Position + (1, window.Size.Y-1), window.Border.Bottom);
 
-            buffer.DrawChar(window.Position, (DrawingChar) window.Border.CornerTopLeft);
-            buffer.DrawChar(window.Position + (window.Size.X, 0), (DrawingChar) window.Border.CornerTopRight);
-            buffer.DrawChar(window.Position + window.Size, (DrawingChar) window.Border.CornerBottomRight);
-            buffer.DrawChar(window.Position + (0, window.Size.Y), (DrawingChar) window.Border.CornerBottomLeft);
 
             //foreach (DrawingChar[] line in window.Data) {
             //    buffer.DrawLine(coords + (1,0), line);
