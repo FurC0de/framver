@@ -51,7 +51,7 @@ namespace frware_test
 
                 if (db != -1) {
                     dirtySectors.Add(new Tuple<IntVector2, int>(new IntVector2(db, y), de - db + 1));
-                    System.Diagnostics.Debug.WriteLine("adding dirty sector: from {0} to {1} of len {2}, on coords ({3} {4})", db, de, de - db, db, y);
+                    //System.Diagnostics.Debug.WriteLine("adding dirty sector: from {0} to {1} of len {2}, on coords ({3} {4})", db, de, de - db, db, y);
                 }
             }
 
@@ -66,8 +66,7 @@ namespace frware_test
         {
             States[coords.Y][coords.X].Changed = true;
             DrawingChars[coords.Y][coords.X] = character;
-
-            System.Diagnostics.Debug.WriteLine($"Drawing char {character.Letter} {character.Color} at {coords.X}, {coords.Y}");
+            //System.Diagnostics.Debug.WriteLine($"Drawing char {character.Letter} {character.Color} at {coords.X}, {coords.Y}");
         }
 
         public void DrawLine(IntVector2 coords, DrawingChar[] line) {
@@ -77,7 +76,6 @@ namespace frware_test
             }
 
             //System.Diagnostics.Debug.WriteLine("setting {0} chars as dirty", line.Length);
-
             Array.Copy(line, 0, DrawingChars[coords.Y], coords.X, line.Length);
         }
 
@@ -103,10 +101,10 @@ namespace frware_test
                 //System.Diagnostics.Debug.WriteLine($"Is DrawingChar.Color null/empty {dchar.Color == null}/{dchar.Color == ""}");
                 if (dchar.Letter == '\0') { 
                     renderedString += " ";
-                    System.Diagnostics.Debug.WriteLine($"Got DrawingChar '\\0' ({dchar.Color}) on {x},{coords.Y}");
+                    //System.Diagnostics.Debug.WriteLine($"Got DrawingChar '\\0' ({dchar.Color}) on {x},{coords.Y}");
                 } else
                 {
-                    System.Diagnostics.Debug.WriteLine($"Got DrawingChar '{dchar.Letter}' ({dchar.Color}) on {x},{coords.Y}");
+                    //System.Diagnostics.Debug.WriteLine($"Got DrawingChar '{dchar.Letter}' ({dchar.Color}) on {x},{coords.Y}");
                 }
 
                 

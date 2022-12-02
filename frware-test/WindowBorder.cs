@@ -22,7 +22,8 @@
 
         public String? Title;
 
-        public WindowBorderStyle Style = new WindowBorderStyle("V", "H", '1', '2', '3', '4');
+        public WindowBorderStyle Style = new WindowBorderStyle("║", "═", '╔', '╗', '╝', '╚');
+        //public WindowBorderStyle Style = new WindowBorderStyle("V", "H", '1', '2', '3', '4');
 
         public WindowBorder(IntVector2 size)
         {
