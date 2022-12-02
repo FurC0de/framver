@@ -11,6 +11,8 @@ namespace frware_test
 {
     internal class ConsoleUtilities
     {
+        #region SWP_Flags
+
         [Flags]
         public enum SWP_Flags : uint
         {
@@ -61,6 +63,10 @@ namespace frware_test
             SWP_ASYNCWINDOWPOS = 0x4000
         }
 
+        #endregion
+
+        #region WinStyles
+
         [Flags]
         public enum WinStyles : uint
         {
@@ -107,6 +113,10 @@ namespace frware_test
             WS_VSCROLL = 0x00200000,                   //The window has a vertical scroll bar.
         }
 
+        #endregion
+
+        #region GWL_Flags
+
         public enum GWL_Flags : int
         {
             GWL_USERDATA = -21,
@@ -121,16 +131,14 @@ namespace frware_test
             DWLP_USER = 0x8
         }
 
+        #endregion
+
+        #region user32
+
         [DllImport("user32.dll")]
         public static extern bool ShowWindow(System.IntPtr hWnd, int cmdShow);
 
-        public static void Maximize()
-        {
-            IntPtr window = GetConsoleWindow();
-            ShowWindow(window, 3); //SW_MAXIMIZE = 3
-        }
-
-        [DllImport("USER32.DLL")]
+        [DllImport("user32.DLL")]
         public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
 
         [DllImport("user32.dll", EntryPoint = "FindWindow", SetLastError = true)]
@@ -145,22 +153,45 @@ namespace frware_test
         [DllImport("user32.dll", SetLastError = true)]
         static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
 
-        [DllImport("user32", ExactSpelling = true, SetLastError = true)]
+        [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)]
         internal static extern int MapWindowPoints(IntPtr hWndFrom, IntPtr hWndTo, [In, Out] ref RECT rect, [MarshalAs(UnmanagedType.U4)] int cPoints);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         public static extern IntPtr GetDesktopWindow();
 
+        #endregion
+
+        #region kernel32
+
         [DllImport("kernel32.dll")]
         static extern IntPtr GetConsoleWindow();
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern IntPtr GetStdHandle(int nStdHandle);
+
+        [DllImport("kernel32.dll")]
+        static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+
+        [DllImport("kernel32.dll")]
+        static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+
+        #endregion
+
+        #region RECT
         [StructLayout(LayoutKind.Sequential)]
         public struct RECT
         {
             public int left, top, bottom, right;
         }
+        #endregion
 
         private static readonly string WINDOW_NAME = "w-framver-testbuild-00411";  //name of the window
+
+        public static void Maximize()
+        {
+            IntPtr window = GetConsoleWindow();
+            ShowWindow(window, 3); //SW_MAXIMIZE = 3
+        }
 
         static void makeBorderless()
         {
@@ -230,6 +261,69 @@ namespace frware_test
             disableBorderless();
             Console.WriteLine("Disabled: borderless");
             Thread.Sleep(200);
+        }
+
+
+        const uint ENABLE_QUICK_EDIT = 0x0040;
+
+        // STD_INPUT_HANDLE (DWORD): -10 is the standard input device.
+        const int STD_INPUT_HANDLE = -10;
+        
+
+        internal static bool DisableQuickEdit()
+        {
+
+            IntPtr consoleHandle = GetStdHandle(STD_INPUT_HANDLE);
+
+            // get current console mode
+            uint consoleMode;
+            if (!GetConsoleMode(consoleHandle, out consoleMode))
+            {
+                Console.WriteLine("ERROR: Unable to get console mode.");
+                // ERROR: Unable to get console mode.
+                return false;
+            }
+
+            // Clear the quick edit bit in the mode flags
+            consoleMode &= ~ENABLE_QUICK_EDIT;
+
+            // set the new mode
+            if (!SetConsoleMode(consoleHandle, consoleMode))
+            {
+                Console.WriteLine("ERROR: Unable to set console mode.");
+                // ERROR: Unable to set console mode
+                return false;
+            }
+
+            return true;
+        }
+
+        internal static bool EnableQuickEdit()
+        {
+
+            IntPtr consoleHandle = GetStdHandle(STD_INPUT_HANDLE);
+
+            // get current console mode
+            uint consoleMode;
+            if (!GetConsoleMode(consoleHandle, out consoleMode))
+            {
+                Console.WriteLine("ERROR: Unable to get console mode.");
+                // ERROR: Unable to get console mode.
+                return false;
+            }
+
+            // Clear the quick edit bit in the mode flags
+            consoleMode |= ENABLE_QUICK_EDIT;
+
+            // set the new mode
+            if (!SetConsoleMode(consoleHandle, consoleMode))
+            {
+                Console.WriteLine("ERROR: Unable to set console mode.");
+                // ERROR: Unable to set console mode
+                return false;
+            }
+
+            return true;
         }
     }
 }

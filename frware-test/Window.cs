@@ -27,6 +27,7 @@ namespace frware_test
         // Is this window expanded. This means window will flood all the free space.
         bool Expanded = false;
 
+        // TODO: Move window contents to it's own class.
         // Window contents.
         public DrawingChar[][]? Data;
 
@@ -47,7 +48,7 @@ namespace frware_test
 
         public void SetSize(IntVector2 size) {
             this.Size = size;
-            Data = JaggedArrayCreator.CreateJaggedArray<DrawingChar[][]>(new int[] { size.X, size.Y });
+            Data = JaggedArrayCreator.CreateJaggedArray<DrawingChar[][]>(new int[] { size.X-2, size.Y-2 });
             Border.SetSize(size);
         }
 

@@ -32,6 +32,7 @@ namespace frware_test {
                 Console.BufferHeight = Size.Y;
 
             ConsoleUtilities.MakeBorderless();
+            ConsoleUtilities.DisableQuickEdit();
 
             var spectrum = new (string color, string letter)[]
             {
@@ -69,6 +70,7 @@ namespace frware_test {
                     else
                     {
                         ConsoleUtilities.DisableBorderless();
+                        ConsoleUtilities.EnableQuickEdit();
                         Environment.Exit(0);
                     }
                 }
@@ -132,6 +134,7 @@ namespace frware_test {
                 DataClock.Step();
                 
                 Renderer.DrawLine(coords4, spectrum[testInt]);
+
 
                 testInt = (testInt + 1) % 10;
                 Thread.Sleep(60);
