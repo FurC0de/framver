@@ -19,13 +19,18 @@ namespace frware_test {
 
         static void Main() {
 
+            Console.Clear();
+
+            //Console.WriteLine("HELLO");
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
             if (Console.BufferWidth < Size.X)
                 Console.BufferWidth = Size.X;
 
-            if (Console.BufferHeight < Size.Y)
+            if (Console.BufferHeight > Size.Y)
                 Console.BufferHeight = Size.Y;
+
+            ConsoleUtilities.Borderless();
 
             var spectrum = new (string color, string letter)[]
             {
@@ -105,7 +110,7 @@ namespace frware_test {
             {
                 DataClock.Step();
                 
-                //Renderer.DrawLine(coords4, spectrum[testInt]);
+                Renderer.DrawLine(coords4, spectrum[testInt]);
 
                 testInt = (testInt + 1) % 10;
                 Thread.Sleep(60);
