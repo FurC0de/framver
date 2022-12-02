@@ -20,7 +20,8 @@ namespace frware_test {
         static void Main() {
 
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-
+            Console.BufferWidth = Size.X;
+            Console.BufferHeight = Size.Y;
             var spectrum = new (string color, string letter)[]
             {
                 ("#124542", "a"),
