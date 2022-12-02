@@ -19,9 +19,10 @@ namespace frware_test
         // Title of the window
         String title = "Untitled";
 
-        // NOT USED YET
+        // FIXME: NOT USED YET
         int zindex = 1;
 
+        // FIXME: NOT USED YET
         // Is this window expanded. This means window will flood all the free space.
         bool expanded = false;
 

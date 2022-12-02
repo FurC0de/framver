@@ -34,8 +34,8 @@ namespace frware_test
 
         public void addWindow(IntVector2 coords, Window window)
         {
-            DrawingChar[] line = value.word.Select(x => new DrawingChar(x, value.color)).ToArray();
-            buffer.drawLine(coords, line);
+            // DrawingChar[] line = value.word.Select(x => new DrawingChar(x, value.color)).ToArray();
+            // buffer.drawLine(coords, line);
         }
 
         public void draw()

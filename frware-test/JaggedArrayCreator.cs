@@ -16,7 +16,7 @@ namespace frware_test
         public static object InitializeJaggedArray(Type type, int index, int[] lengths)
         {
             Array array = Array.CreateInstance(type, lengths[index]);
-            Type elementType = type.GetElementType();
+            Type? elementType = type.GetElementType();
 
             if (elementType != null)
             {
