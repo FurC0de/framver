@@ -11,7 +11,7 @@ namespace frware_test
     {
         // Size is only used if window is not expanded. aka windowed mode.
         IntVector2 Size;
-        readonly IntVector2 MinSize = new IntVector2(8, 3);
+        internal readonly static IntVector2 s_MinSize = new IntVector2(8, 3);
 
         // Position of the top-left corner of this window.
         IntVector2 Position;
@@ -26,23 +26,24 @@ namespace frware_test
         // Is this window expanded. This means window will flood all the free space.
         bool Expanded = false;
 
-        // Window contents
+        // Window contents.
         public DrawingChar[][]? Data;
 
-        // Window border style
-        public WindowBorderStyle BorderStyle = new WindowBorderStyle("V", "H", '1', '2', '3', '4');
+        // Window border.
+        public WindowBorder Border = new WindowBorder(s_MinSize);
 
         public Window(IntVector2 size, IntVector2 position) {}
         public Window() {}
 
         public void Init() {
-            SetSize(MinSize);
+            SetSize(s_MinSize);
             SetPosition(new IntVector2(0, 0));
         }
 
         public void SetSize(IntVector2 size) {
             this.Size = size;
             Data = JaggedArrayCreator.CreateJaggedArray<DrawingChar[][]>(new int[] { size.X, size.Y });
+            Border.SetSize(size);
         }
 
         public void SetPosition(IntVector2 position) {
@@ -51,9 +52,6 @@ namespace frware_test
 
         public void SetTitle(String title) {
             this.Title = title;
-        }
-
-        public void GetLine(int index) { 
         }
     }
 }
