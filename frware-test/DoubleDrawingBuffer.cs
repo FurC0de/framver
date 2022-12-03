@@ -90,6 +90,39 @@ namespace frware_test
             }
         }
 
+
+        public void DrawWindow(Window window)
+        {
+            if (window.Border != null)
+            {
+                if (window.Border.CornerTopLeft != null)
+                    DrawChar(window.Position, (DrawingChar)window.Border.CornerTopLeft);
+                if (window.Border.CornerTopRight != null)
+                    DrawChar(window.Position + (window.Size.X - 1, 0), (DrawingChar)window.Border.CornerTopRight);
+                if (window.Border.CornerBottomRight != null)
+                    DrawChar(window.Position + (window.Size.X - 1, window.Size.Y - 1), (DrawingChar)window.Border.CornerBottomRight);
+                if (window.Border.CornerBottomLeft != null)
+                    DrawChar(window.Position + (0, window.Size.Y - 1), (DrawingChar)window.Border.CornerBottomLeft);
+
+                if (window.Border.Left != null)
+                    DrawVLine(window.Position + (0, 1), window.Border.Left);
+                if (window.Border.Right != null)
+                    DrawVLine(window.Position + (window.Size.X - 1, 1), window.Border.Right);
+                if (window.Border.Top != null)
+                    DrawLine(window.Position + (1, 0), window.Border.Top);
+                if (window.Border.Bottom != null)
+                    DrawLine(window.Position + (1, window.Size.Y - 1), window.Border.Bottom);
+            }
+
+            if (window.Data == null)
+            {
+                return;
+            }
+            //foreach (DrawingChar[] line in window.Data) {
+            //    buffer.DrawLine(coords + (1,0), line);
+            //}
+        }
+
         public String GetLine(IntVector2 coords, int length)
         {
             // Resulting string with Pastel colors.

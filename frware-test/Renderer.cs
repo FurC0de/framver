@@ -11,7 +11,7 @@ namespace frware_test
     {
         public DoubleDrawingBuffer Buffer;
 
-        public List<Container> LayeringContainers = new List<Container>();
+        public List<LayeringContainer> LayeringContainers = new List<LayeringContainer>();
 
         public Renderer(IntVector2 size)
         {
@@ -32,29 +32,10 @@ namespace frware_test
 
         public void DrawWindow(Window window)
         {
-            if (window.Data == null)
-                return;
-
-            Buffer.DrawChar(window.Position, (DrawingChar)window.Border.CornerTopLeft);
-            Buffer.DrawChar(window.Position + (window.Size.X-1, 0), (DrawingChar)window.Border.CornerTopRight);
-            Buffer.DrawChar(window.Position + (window.Size.X-1, window.Size.Y-1), (DrawingChar)window.Border.CornerBottomRight);
-            Buffer.DrawChar(window.Position + (0, window.Size.Y-1), (DrawingChar)window.Border.CornerBottomLeft);
-
-            Buffer.DrawVLine(window.Position + (0, 1), window.Border.Left);
-            Buffer.DrawVLine(window.Position + (window.Size.X-1, 1), window.Border.Right);
-
-            Buffer.DrawLine(window.Position + (1, 0), window.Border.Top);
-            Buffer.DrawLine(window.Position + (1, window.Size.Y-1), window.Border.Bottom);
-
-
-            //foreach (DrawingChar[] line in window.Data) {
-            //    buffer.DrawLine(coords + (1,0), line);
-            //}
-
-            // buffer.drawLine(coords, line);
+            Buffer.DrawLine(window.Position, "Unsupported".ToDrawingCharArray());
         }
 
-        public void AddLayeringContainer(Container layeringContainer)
+        public void AddLayeringContainer(LayeringContainer layeringContainer)
         {
             LayeringContainers.Add(layeringContainer);
         }
@@ -63,7 +44,7 @@ namespace frware_test
         {
             bool anyUpdates = false;
             
-            foreach (Container layeringContainer in LayeringContainers)
+            foreach (LayeringContainer layeringContainer in LayeringContainers)
             {
                 if (layeringContainer.Updated)
                     anyUpdates = true;
@@ -81,8 +62,6 @@ namespace frware_test
 
             foreach(Tuple<IntVector2, int> sector in toUpdate)
             {
-                //Console.SetCursorPosition(0, 0);
-                //Console.WriteLine(sector.Item2);
                 Console.SetCursorPosition(sector.Item1.X, sector.Item1.Y);
                 Console.Write(Buffer.GetLine(sector.Item1, sector.Item2));
             }
