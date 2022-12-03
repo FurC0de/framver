@@ -6,6 +6,7 @@
     <RootNamespace>frware_test</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <StartupObject>frware_test.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

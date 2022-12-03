@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 
 namespace frware_test
 {
-    internal class ConsoleUtilities
+    internal static class WindowsConsoleUtilities
     {
         #region SWP_Flags
 
@@ -138,7 +138,7 @@ namespace frware_test
         [DllImport("user32.dll")]
         public static extern bool ShowWindow(System.IntPtr hWnd, int cmdShow);
 
-        [DllImport("user32.DLL")]
+        [DllImport("user32.dll")]
         public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
 
         [DllImport("user32.dll", EntryPoint = "FindWindow", SetLastError = true)]
@@ -268,7 +268,6 @@ namespace frware_test
 
         // STD_INPUT_HANDLE (DWORD): -10 is the standard input device.
         const int STD_INPUT_HANDLE = -10;
-        
 
         internal static bool DisableQuickEdit()
         {

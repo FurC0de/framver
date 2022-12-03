@@ -21,16 +21,15 @@ namespace frware_test {
         static void Main() {
             Console.Clear();
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-            Console.SetBufferSize(Size.X, Size.Y);
 
-            //if (Console.BufferWidth < Size.X)
-            //    Console.BufferWidth = Size.X;
-
-            //if (Console.BufferHeight > Size.Y)
-            //    Console.BufferHeight = Size.Y;
-
-            ConsoleUtilities.MakeBorderless();
-            ConsoleUtilities.DisableQuickEdit();
+            if (OperatingSystem.IsWindows()) {
+#pragma warning disable CA1416
+                Console.SetWindowSize(1, 1);
+                Console.SetBufferSize(Size.X, Size.Y);
+                WindowsConsoleUtilities.MakeBorderless();
+                WindowsConsoleUtilities.DisableQuickEdit();
+#pragma warning restore CA1416
+            }
 
             var spectrum = new (string color, string letter)[]
             {
@@ -67,8 +66,8 @@ namespace frware_test {
                     }
                     else
                     {
-                        ConsoleUtilities.DisableBorderless();
-                        ConsoleUtilities.EnableQuickEdit();
+                        WindowsConsoleUtilities.DisableBorderless();
+                        WindowsConsoleUtilities.EnableQuickEdit();
                         Environment.Exit(0);
                     }
                 }
@@ -138,7 +137,7 @@ namespace frware_test {
                 Thread.Sleep(60);
 
                 // WEIRD FIX: Fixes stutter.
-                Console.MoveBufferArea(0,0,0,0,0,0); 
+                //Console.MoveBufferArea(0,0,0,0,0,0); 
 
                 //Console.SetCursorPosition(80, 50);
                 //Console.WriteLine("DATA "+dataClock.Elapsed.TotalMilliseconds);
@@ -157,6 +156,7 @@ namespace frware_test {
                 RenderClock.Step();
                 Thread.Sleep(30);
                 Renderer.Draw();
+
                 //Console.SetCursorPosition(0, 0);
                 //Console.WriteLine("DRAW " + renderClock.Elapsed.TotalMilliseconds);
             }
