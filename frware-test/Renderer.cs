@@ -11,7 +11,7 @@ namespace frware_test
     {
         public DoubleDrawingBuffer Buffer;
 
-        public List<DrawingLayer> Layers = new List<DrawingLayer>();
+        public List<Container> LayeringContainers = new List<Container>();
 
         public Renderer(IntVector2 size)
         {
@@ -54,22 +54,22 @@ namespace frware_test
             // buffer.drawLine(coords, line);
         }
 
-        public void AddLayer(DrawingLayer layer)
+        public void AddLayeringContainer(Container layeringContainer)
         {
-            Layers.Add(layer);
+            LayeringContainers.Add(layeringContainer);
         }
 
         public void Draw()
         {
             bool anyUpdates = false;
             
-            foreach (DrawingLayer layer in Layers)
+            foreach (Container layeringContainer in LayeringContainers)
             {
-                if (layer.Updated)
+                if (layeringContainer.Updated)
                     anyUpdates = true;
 
                 if (anyUpdates)
-                    Buffer += layer.Buffer;
+                    Buffer += layeringContainer.Buffer;
             }
 
 

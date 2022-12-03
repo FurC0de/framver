@@ -19,12 +19,8 @@ namespace frware_test {
         #endregion
 
         static void Main() {
-
             Console.Clear();
-
-            //Console.WriteLine("HELLO");
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-
             Console.SetBufferSize(Size.X, Size.Y);
 
             //if (Console.BufferWidth < Size.X)
