@@ -17,6 +17,10 @@ namespace frware_test
         {
             Buffer = new DoubleDrawingBuffer(size);
         }
+        public void DrawLine(IntVector2 coords, DrawingChar[] values)
+        {
+            Buffer.DrawLine(coords, values);
+        }
 
         public void DrawLine(IntVector2 coords, (string color, char letter)[] values)
         {

@@ -27,6 +27,10 @@ internal sealed class GameClock
 
     TimeSpan elapsed;
 
+    internal TimeSpan ElapsedMax { get { return elapsedMax; } }
+
+    TimeSpan elapsedMax;
+
     internal TimeSpan Total { get { return total; } }
 
     TimeSpan total;
@@ -58,6 +62,10 @@ internal sealed class GameClock
             count = Timestamp;
             long offset = count - last;
             elapsed = DeltaToTimeSpan(offset);
+
+            if (elapsed > elapsedMax)
+                elapsedMax = elapsed;
+
             total += elapsed; 
         }
     }

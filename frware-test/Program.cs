@@ -19,7 +19,6 @@ namespace frware_test {
         #endregion
 
         static void Main() {
-            Console.Clear();
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
             if (OperatingSystem.IsWindows()) {
@@ -30,6 +29,8 @@ namespace frware_test {
                 WindowsConsoleUtilities.DisableQuickEdit();
 #pragma warning restore CA1416
             }
+
+            Console.Clear();
 
             var spectrum = new (string color, string letter)[]
             {
@@ -68,14 +69,19 @@ namespace frware_test {
                     {
                         WindowsConsoleUtilities.DisableBorderless();
                         WindowsConsoleUtilities.EnableQuickEdit();
+
+                        Console.WriteLine($"Data latency max    : {DataClock.ElapsedMax.TotalMilliseconds}");
+                        Console.WriteLine($"Render latencty max : {RenderClock.ElapsedMax.TotalMilliseconds}");
+
                         Environment.Exit(0);
                     }
                 }
-                Thread.Sleep(20);
+                Thread.Sleep(1);
             }
         }
 
         static public void testDataThreadFunc(CancellationToken cancelToken) {
+            /*
             var spectrum = new (string color, string line)[]
             {
                 ("#124542", "abcdefghij"),
@@ -98,7 +104,7 @@ namespace frware_test {
             IntVector2 coords3 = new IntVector2(0, 3);
             IntVector2 coords4 = new IntVector2(3, 4);
 
-            DataClock.Start();
+            
 
             Renderer.DrawLine(coords0, ("#AAAAAA", " ╔═ Coordinates ══════════════╗"));
             Renderer.DrawLine(coords1, ("#AAAAAA", " ║ y" + Renderer.Buffer.DrawingChars.Length.ToString() + "  ;"));
@@ -119,22 +125,29 @@ namespace frware_test {
             testWindow3.Init();
             testWindow3.SetTitle("Title");
             Renderer.DrawWindow(testWindow3);
+            */
 
+            DataClock.Start();
 
             while (true)
             {
                 if (cancelToken.IsCancellationRequested)
                 {
+                    DataClock.Stop();
                     return;
                 }
 
                 DataClock.Step();
-                
-                Renderer.DrawLine(coords4, spectrum[testInt]);
-
-
-                testInt = (testInt + 1) % 10;
                 Thread.Sleep(60);
+
+                Renderer.DrawLine(new IntVector2(1, 1), ($"Data   : {DataClock.Elapsed.TotalMilliseconds}").ToDrawingCharArray());
+                Renderer.DrawLine(new IntVector2(19, 1), ($"Max : {DataClock.ElapsedMax.TotalMilliseconds}").ToDrawingCharArray());
+
+                Renderer.DrawLine(new IntVector2(1, 2), ($"Render : {RenderClock.Elapsed.TotalMilliseconds}").ToDrawingCharArray());
+                Renderer.DrawLine(new IntVector2(19, 2), ($"Max : {RenderClock.ElapsedMax.TotalMilliseconds}").ToDrawingCharArray());
+
+                //Renderer.DrawLine(coords4, spectrum[testInt]);
+                //testInt = (testInt + 1) % 10;
 
                 // WEIRD FIX: Fixes stutter.
                 //Console.MoveBufferArea(0,0,0,0,0,0); 
@@ -150,15 +163,14 @@ namespace frware_test {
             {
                 if (cancelToken.IsCancellationRequested)
                 {
+                    RenderClock.Stop();
                     return;
                 }
 
                 RenderClock.Step();
                 Thread.Sleep(30);
-                Renderer.Draw();
 
-                //Console.SetCursorPosition(0, 0);
-                //Console.WriteLine("DRAW " + renderClock.Elapsed.TotalMilliseconds);
+                Renderer.Draw();
             }
         }
     }
