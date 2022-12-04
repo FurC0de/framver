@@ -130,6 +130,8 @@ namespace frware_test {
             Renderer.DrawWindow(testWindow3);
             */
 
+            Renderer.AddLayeringContainer(new LayeringContainer(Size));
+
             DataClock.Start();
 
             while (true)
@@ -141,14 +143,22 @@ namespace frware_test {
                 }
 
                 DataClock.Step();
-                Thread.Sleep(60);
+                Thread.Sleep(100);
 
+                #region DebugLines
                 Renderer.DrawLine(new IntVector2(1, 1), ($"Data   : {DataClock.Elapsed.TotalMilliseconds}").ToDrawingCharArray());
                 Renderer.DrawLine(new IntVector2(19, 1), ($"Max : {DataClock.ElapsedMax.TotalMilliseconds}").ToDrawingCharArray());
 
                 Renderer.DrawLine(new IntVector2(1, 2), ($"Render : {RenderClock.Elapsed.TotalMilliseconds}").ToDrawingCharArray());
                 Renderer.DrawLine(new IntVector2(19, 2), ($"Max : {RenderClock.ElapsedMax.TotalMilliseconds}").ToDrawingCharArray());
                 Renderer.DrawLine(new IntVector2(35, 2), ($"Delay : {Math.Clamp(60 - ((int)RenderClock.Elapsed.TotalMilliseconds), 0, 30)}").ToDrawingCharArray());
+
+                Renderer.DrawLine(new IntVector2(1, 4), ($"Containers ({Renderer.LayeringContainers.Count}):").ToDrawingCharArray());
+                for (int i = 0; i < Renderer.LayeringContainers.Count; i++)
+                {
+                    Renderer.DrawLine(new IntVector2(3, 5+i), ($"container_{Renderer.LayeringContainers[i].ContainerUID}").ToDrawingCharArray("#BDBDBD"));
+                }
+                #endregion
 
                 //Renderer.DrawLine(coords4, spectrum[testInt]);
                 //testInt = (testInt + 1) % 10;

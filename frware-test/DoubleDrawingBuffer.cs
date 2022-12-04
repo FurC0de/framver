@@ -73,52 +73,38 @@ namespace frware_test
             this._states = JaggedArrayCreator.CreateJaggedArray<bool[][]>(Size.Y, Size.X);
         }
 
-        //public void AddDirty(IntVector2 topLeft, IntVector2 bottomRight)
-        //{
-        //    for (int x = topLeft.X; x < bottomRight.X; x++)
-        //        for (int x = )
-        //            States[coords.Y][x + coords.X].Changed = true;
-        //}
+        public unsafe void SetDirty(IntVector2 leftTop, IntVector2 rightBottom)
+        {
+            IntVector2 area = rightBottom - leftTop;
+
+            fixed (bool* a = &_states[leftTop.Y][leftTop.X])
+            {
+                bool* b = a;
+                var span = new Span<bool>(b, area.X*area.Y);
+                span.Fill(true);
+            }
+        }
 
         public unsafe void SetGlobalDirty()
         {
-            //System.Diagnostics.Debug.WriteLine($"-> x{_states[0].Length}*y{_states.Length}");
-            //System.Diagnostics.Debug.WriteLine($"-> expecting x{Size.X}*y{Size.Y}");
             fixed (bool* a = &_states[0][0])
             {
                 bool* b = a;
                 var span = new Span<bool>(b, Size.X * Size.Y);
                 span.Fill(true);
             }
-
-            int stateGlobal = 0;
-            for (int y = 0; y < Size.Y; y++)
-            {
-                for (int x = 0; x < Size.X; x++)
-                {
-                    stateGlobal += _states[y][x] ? 1 : 0;
-                }
-                //System.Diagnostics.Debug.WriteLine($"{stateGlobal}");
-            }
-
-            //System.Diagnostics.Debug.WriteLine($"<- x{_states[0].Length}*y{_states.Length}");
-            //System.Diagnostics.Debug.WriteLine($"<- expecting x{Size.X}*y{Size.Y}");
         }
 
         public void DrawChar(IntVector2 coords, DrawingChar character)
         {
             _states[coords.Y][coords.X] = true;
             DrawingChars[coords.Y][coords.X] = character;
-            //System.Diagnostics.Debug.WriteLine($"Drawing char {character.Letter} {character.Color} at {coords.X}, {coords.Y}");
         }
 
         public void DrawLine(IntVector2 coords, DrawingChar[] line) {
             for (int x = 0; x < line.Length; x++) {
                 _states[coords.Y][x + coords.X] = true;
-                //System.Diagnostics.Debug.WriteLine($"Setting {x+coords.X},{coords.Y} as dirty ('{line[x].Letter}')");
             }
-
-            //System.Diagnostics.Debug.WriteLine("setting {0} chars as dirty", line.Length);
             Array.Copy(line, 0, DrawingChars[coords.Y], coords.X, line.Length);
         }
 
