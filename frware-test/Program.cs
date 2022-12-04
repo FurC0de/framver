@@ -19,6 +19,7 @@ namespace frware_test {
         #endregion
 
         static void Main() {
+            Thread.Sleep(5000);
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
             if (OperatingSystem.IsWindows()) {
@@ -45,6 +46,8 @@ namespace frware_test {
                 ("#9CDEDA", "j"),
                 ("#BBE9E6", "k")
             };
+
+            Renderer.Buffer.SetGlobalDirty();
 
             // Console.WriteLine(string.Join("", spectrum.Select(s => s.letter.Pastel(s.color))));
             CancellationTokenSource cancelSource = new CancellationTokenSource();
@@ -145,12 +148,13 @@ namespace frware_test {
 
                 Renderer.DrawLine(new IntVector2(1, 2), ($"Render : {RenderClock.Elapsed.TotalMilliseconds}").ToDrawingCharArray());
                 Renderer.DrawLine(new IntVector2(19, 2), ($"Max : {RenderClock.ElapsedMax.TotalMilliseconds}").ToDrawingCharArray());
+                Renderer.DrawLine(new IntVector2(35, 2), ($"Delay : {Math.Clamp(60 - ((int)RenderClock.Elapsed.TotalMilliseconds), 0, 30)}").ToDrawingCharArray());
 
                 //Renderer.DrawLine(coords4, spectrum[testInt]);
                 //testInt = (testInt + 1) % 10;
 
                 // WEIRD FIX: Fixes stutter.
-                //Console.MoveBufferArea(0,0,0,0,0,0); 
+                Console.MoveBufferArea(0,0,0,0,0,0); 
 
                 //Console.SetCursorPosition(80, 50);
                 //Console.WriteLine("DATA "+dataClock.Elapsed.TotalMilliseconds);
@@ -167,10 +171,10 @@ namespace frware_test {
                     return;
                 }
 
-                RenderClock.Step();
-                Thread.Sleep(30);
-
                 Renderer.Draw();
+
+                RenderClock.Step();
+                Thread.Sleep(Math.Clamp(60-((int)RenderClock.Elapsed.TotalMilliseconds), 0, 30));
             }
         }
     }

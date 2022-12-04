@@ -1,10 +1,12 @@
 ﻿using Pastel;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using static System.Collections.Specialized.BitVector32;
 
@@ -13,38 +15,40 @@ namespace frware_test
     internal class DoubleDrawingBuffer
     {
         public IntVector2 Size;
+
         public DrawingChar[][] DrawingChars;
         public DrawingChar[][] OldDrawingChars;
-        public DrawingCharState[][] States;
+
+        private bool[][] _states;
 
         public DoubleDrawingBuffer(IntVector2 size) {
             this.Size = size;
             this.DrawingChars = JaggedArrayCreator.CreateJaggedArray<DrawingChar[][]>(new int[] { size.Y, size.X });
             this.OldDrawingChars = JaggedArrayCreator.CreateJaggedArray<DrawingChar[][]>(new int[] { size.Y, size.X });
-            this.States = JaggedArrayCreator.CreateJaggedArray<DrawingCharState[][]>(new int[] { size.Y, size.X });
+            this._states = JaggedArrayCreator.CreateJaggedArray<bool[][]>(new int[] { size.Y, size.X });
 
             System.Diagnostics.Debug.WriteLine("created jagged arrays of length: dc({0},{1}) odc({2},{3}) s({4},{5})", 
                 DrawingChars.Length, DrawingChars[0].Length,
                 OldDrawingChars.Length, OldDrawingChars[0].Length,
-                States.Length, States[0].Length);
+                _states.Length, _states[0].Length);
         }
 
-        public List<Tuple<IntVector2, int>> CheckDirty() {
+        public unsafe List<Tuple<IntVector2, int>> CheckDirty() {
             List<Tuple<IntVector2, int>> dirtySectors = new List<Tuple<IntVector2, int>>(); // Coords, length
 
-            for (int y = 0; y < States.Length; y++) {
+            //System.Diagnostics.Debug.WriteLine($"-> x{_states[0].Length}*y{_states.Length}");
+            //System.Diagnostics.Debug.WriteLine($"-> expecting x{Size.X}*y{Size.Y}");
+
+            for (int y = 0; y < Size.Y; y++) {
                 int db = -1;
                 int de = -1;
-
-                //System.Diagnostics.Debug.WriteLine("states[y].Length is {0}", states[y].Length);
-
-                for (int x = 0; x < States[y].Length; x++) {
-                    //System.Diagnostics.Debug.Write("("+x+")");
-                    if (States[y][x].Changed) {
-                        //System.Diagnostics.Debug.Write(" => "+x);
+                
+                for (int x = 0; x < Size.X; x++) {
+                    
+                    if (_states[y][x]) {
                         if (db == -1)
                             db = x;
-
+                    
                         if (de < x)
                             de = x;
                     }
@@ -56,24 +60,61 @@ namespace frware_test
                 }
             }
 
+            //System.Diagnostics.Debug.WriteLine($"<- x{_states[0].Length}*y{_states.Length}"); 
+            //System.Diagnostics.Debug.WriteLine($"<- expecting x{Size.X}*y{Size.Y}");
+
+            //System.Diagnostics.Debug.WriteLine($"Checked dirty sectors successfully");
             return dirtySectors;
+
         }
 
 
         public void AcceptDirty() {
-            this.States = JaggedArrayCreator.CreateJaggedArray<DrawingCharState[][]>(Size.X, Size.Y);
+            this._states = JaggedArrayCreator.CreateJaggedArray<bool[][]>(Size.Y, Size.X);
+        }
+
+        //public void AddDirty(IntVector2 topLeft, IntVector2 bottomRight)
+        //{
+        //    for (int x = topLeft.X; x < bottomRight.X; x++)
+        //        for (int x = )
+        //            States[coords.Y][x + coords.X].Changed = true;
+        //}
+
+        public unsafe void SetGlobalDirty()
+        {
+            //System.Diagnostics.Debug.WriteLine($"-> x{_states[0].Length}*y{_states.Length}");
+            //System.Diagnostics.Debug.WriteLine($"-> expecting x{Size.X}*y{Size.Y}");
+            fixed (bool* a = &_states[0][0])
+            {
+                bool* b = a;
+                var span = new Span<bool>(b, Size.X * Size.Y);
+                span.Fill(true);
+            }
+
+            int stateGlobal = 0;
+            for (int y = 0; y < Size.Y; y++)
+            {
+                for (int x = 0; x < Size.X; x++)
+                {
+                    stateGlobal += _states[y][x] ? 1 : 0;
+                }
+                //System.Diagnostics.Debug.WriteLine($"{stateGlobal}");
+            }
+
+            //System.Diagnostics.Debug.WriteLine($"<- x{_states[0].Length}*y{_states.Length}");
+            //System.Diagnostics.Debug.WriteLine($"<- expecting x{Size.X}*y{Size.Y}");
         }
 
         public void DrawChar(IntVector2 coords, DrawingChar character)
         {
-            States[coords.Y][coords.X].Changed = true;
+            _states[coords.Y][coords.X] = true;
             DrawingChars[coords.Y][coords.X] = character;
             //System.Diagnostics.Debug.WriteLine($"Drawing char {character.Letter} {character.Color} at {coords.X}, {coords.Y}");
         }
 
         public void DrawLine(IntVector2 coords, DrawingChar[] line) {
             for (int x = 0; x < line.Length; x++) {
-                States[coords.Y][x + coords.X].Changed = true;
+                _states[coords.Y][x + coords.X] = true;
                 //System.Diagnostics.Debug.WriteLine($"Setting {x+coords.X},{coords.Y} as dirty ('{line[x].Letter}')");
             }
 
@@ -85,11 +126,10 @@ namespace frware_test
         {
             for (int y = 0; y < line.Length; y++)
             {
-                States[y + coords.Y][coords.X].Changed = true;
+                _states[y + coords.Y][coords.X] = true;
                 DrawingChars[y + coords.Y][coords.X] = line[y];
             }
         }
-
 
         public void DrawWindow(Window window)
         {
@@ -141,7 +181,7 @@ namespace frware_test
                 //System.Diagnostics.Debug.WriteLine($"Is DrawingChar.Letter null/0 {dchar.Letter == null}/{dchar.Letter == '\0'}");
                 //System.Diagnostics.Debug.WriteLine($"Is DrawingChar.Color null/empty {dchar.Color == null}/{dchar.Color == ""}");
                 if (dchar.Letter == '\0') {
-                    dchar.Letter = '0';
+                    dchar.Letter = ' ';
                     //System.Diagnostics.Debug.WriteLine($"Got DrawingChar '\\0' ({dchar.Color}) on {x},{coords.Y}");
                     //System.Diagnostics.Debug.Write($"0 ");
                 } else
@@ -198,7 +238,7 @@ namespace frware_test
 
             foreach (Tuple<IntVector2, int> line in dirty) {
                 Array.Copy(layer.DrawingChars[line.Item1.Y], line.Item1.X, global.DrawingChars[line.Item1.Y], line.Item1.X, line.Item2);
-                Array.Copy(layer.States[line.Item1.Y], line.Item1.X, global.States[line.Item1.Y], line.Item1.X, line.Item2);
+                Array.Copy(layer._states[line.Item1.Y], line.Item1.X, global._states[line.Item1.Y], line.Item1.X, line.Item2);
             }
 
             layer.AcceptDirty();
