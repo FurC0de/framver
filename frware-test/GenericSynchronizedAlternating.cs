@@ -65,11 +65,17 @@ namespace frware_test
      * 2 - B is locked
      * 3 - F&B are locked
      * 
-     * 0x00000000
-     * 
-     * 0b00000000 00000000 00000000 00000000
      * 0b00000000 00000000 00000000 00000011 (0b11) is a lock mask
      * 0b00000000 00000000 00000000 00001100 (0b1100) is a mod mask
+     * 
+     * !!! THERE MIGHT BE CATCH-UP FAILURE CONDITION (NOT RACING CONDITION) !!!
+     * !!!                                                                  !!!
+     * !!! When producer thread will lock one value at the same time as co- !!!
+     * !!! nsumer thread wants to get last modded value. If it happens in   !!!
+     * !!! sync more than once there would be a possible lag. Adding a cou- !!!
+     * !!! nter that allows us to check how long ago each value was updated !!!
+     * !!! may help.                                                        !!!
+     * !!! This issue is critical and should be fixed.                      !!!
      */
 
     internal class GenericSynchronizedAlternating<T>
@@ -86,29 +92,50 @@ namespace frware_test
             ValueBack = (T?)Activator.CreateInstance(typeof(T), parameters);
         }
 
-        public T Modify()
+        public GenericSynchronizedAlternating(T front, T back)
         {
-            if (GetLck() != 1)
-            {
-
-            }
-            else
-            {
-
-            }
-
-            return ValueFront;
+            ValueFront = front;
+            ValueBack = back;
         }
 
-        public T Read() 
+        public (T?, uint) Modify()
         {
-            return ValueFront;
+            // Check if Front is locked.
+            // If not - select Front as used value,
+            // Else - select Back as used value.
+            uint usedValue = (uint)(GetLck() != 1 ? 1 : 2);
+            Lock(usedValue);
+
+            return (usedValue == 1 ? ValueFront : ValueBack, usedValue);
         }
 
-        private void Lock(uint lck) {
+        public (T?, uint) Read() 
+        {
+            uint usedValue;
+            switch (GetMod())
+            {
+                case 0: 
+                    usedValue = GetLck() == 1 ? (uint)2 : (uint)1;
+                    break;
+                case 1:
+                    usedValue = GetLck() == 1 ? (uint)2 : (uint)1;
+                    break;
+                case 2:
+                    usedValue = GetLck() == 2 ? (uint)1 : (uint)2;
+                    break;
+                default: 
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            Lock(usedValue);
+
+            return (usedValue == 1 ? ValueFront : ValueBack, usedValue);
+        }
+
+        public void Lock(uint lck) {
             SetStateLck(lck);
         }
-        private void Unlock(uint lck) {
+        public void Unlock(uint lck) {
             UnsetStateLck(lck);
         }
 
@@ -142,6 +169,21 @@ namespace frware_test
             }
         }
 
+        private void AddStateLck(uint lck)
+        {
+            SpinWait spin = new SpinWait();
+            while (true)
+            {
+                uint init = _state;
+                uint val = init & 0b1111 | lck & 0b11;
+                if (Interlocked.CompareExchange(ref _state, val, init) == init)
+                {
+                    break;
+                }
+                spin.SpinOnce();
+            }
+        }
+
         private void UnsetStateLck(uint lck)
         {
             SpinWait spin = new SpinWait();
@@ -157,6 +199,7 @@ namespace frware_test
             }
         }
 
+        [Obsolete("This method is not yet implemented correctly", true)]
         private void SetStateModLck(uint mod, uint lck)
         {
             SpinWait spin = new SpinWait();
