@@ -80,16 +80,17 @@ namespace frware_test
 
     internal class GenericSynchronizedAlternating<T>
     {
-        private T? ValueFront;
+        private T ValueFront;
 
-        private T? ValueBack;
+        private T ValueBack;
 
         private uint _state = 0; // 0x00000000
 
+        // TODO: When constructing GenericSynchronizedAlternating using Activator we should ensure that values are not equal null.
         public GenericSynchronizedAlternating(object[] parameters)
         {
-            ValueFront = (T?)Activator.CreateInstance(typeof(T), parameters);
-            ValueBack = (T?)Activator.CreateInstance(typeof(T), parameters);
+            ValueFront = (T)Activator.CreateInstance(typeof(T), parameters);
+            ValueBack = (T)Activator.CreateInstance(typeof(T), parameters);
         }
 
         public GenericSynchronizedAlternating(T front, T back)
@@ -98,7 +99,7 @@ namespace frware_test
             ValueBack = back;
         }
 
-        public (T?, uint) Modify()
+        public (T, uint) LockAndModify()
         {
             // Check if Front is locked.
             // If not - select Front as used value,
@@ -109,7 +110,7 @@ namespace frware_test
             return (usedValue == 1 ? ValueFront : ValueBack, usedValue);
         }
 
-        public (T?, uint) Read() 
+        public (T, uint) LockAndRead() 
         {
             uint usedValue;
             switch (GetMod())
@@ -130,6 +131,11 @@ namespace frware_test
             Lock(usedValue);
 
             return (usedValue == 1 ? ValueFront : ValueBack, usedValue);
+        }
+
+        public T UnsafeRead(uint value)
+        {
+            return value == 1 ? ValueFront : ValueBack;
         }
 
         public void Lock(uint lck) {

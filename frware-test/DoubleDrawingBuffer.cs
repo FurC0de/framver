@@ -14,23 +14,27 @@ namespace frware_test
 {
     internal class DoubleDrawingBuffer
     {
-        public IntVector2 Size;
+        public IntVector2 Size { get; private set; }
 
-        public DrawingChar[][] DrawingChars;
-        public DrawingChar[][] OldDrawingChars;
+        private DrawingChar[][] DrawingChars;
+        private DrawingChar[][] OldDrawingChars;
 
-        private bool[][] _states;
+        //private bool[][] _states;
+        private GenericSynchronizedAlternating<bool[][]> _states;
 
         public DoubleDrawingBuffer(IntVector2 size) {
             this.Size = size;
             this.DrawingChars = JaggedArrayCreator.CreateJaggedArray<DrawingChar[][]>(new int[] { size.Y, size.X });
             this.OldDrawingChars = JaggedArrayCreator.CreateJaggedArray<DrawingChar[][]>(new int[] { size.Y, size.X });
-            this._states = JaggedArrayCreator.CreateJaggedArray<bool[][]>(new int[] { size.Y, size.X });
+            this._states = new GenericSynchronizedAlternating<bool[][]>(
+                JaggedArrayCreator.CreateJaggedArray<bool[][]>(new int[] { size.Y, size.X }),
+                JaggedArrayCreator.CreateJaggedArray<bool[][]>(new int[] { size.Y, size.X })
+            );
 
             System.Diagnostics.Debug.WriteLine("created jagged arrays of length: dc({0},{1}) odc({2},{3}) s({4},{5})", 
                 DrawingChars.Length, DrawingChars[0].Length,
                 OldDrawingChars.Length, OldDrawingChars[0].Length,
-                _states.Length, _states[0].Length);
+                _states.UnsafeRead(1).Length, _states.UnsafeRead(1)[0].Length);
         }
 
         public unsafe List<Tuple<IntVector2, int>> CheckDirty() {
@@ -39,13 +43,15 @@ namespace frware_test
             //System.Diagnostics.Debug.WriteLine($"-> x{_states[0].Length}*y{_states.Length}");
             //System.Diagnostics.Debug.WriteLine($"-> expecting x{Size.X}*y{Size.Y}");
 
+            (bool[][], uint) states = _states.LockAndRead();
+
             for (int y = 0; y < Size.Y; y++) {
                 int db = -1;
                 int de = -1;
                 
                 for (int x = 0; x < Size.X; x++) {
                     
-                    if (_states[y][x]) {
+                    if (states.Item1[y][x]) {
                         if (db == -1)
                             db = x;
                     
@@ -60,6 +66,8 @@ namespace frware_test
                 }
             }
 
+            _states.Unlock(states.Item2);
+
             //System.Diagnostics.Debug.WriteLine($"<- x{_states[0].Length}*y{_states.Length}"); 
             //System.Diagnostics.Debug.WriteLine($"<- expecting x{Size.X}*y{Size.Y}");
 
@@ -70,49 +78,62 @@ namespace frware_test
 
 
         public void AcceptDirty() {
-            this._states = JaggedArrayCreator.CreateJaggedArray<bool[][]>(Size.Y, Size.X);
+            (bool[][], uint) states = _states.LockAndModify();
+            System.Diagnostics.Debug.WriteLine($"There should go AcceptDirty for {(states.Item2 == 1 ? "Front" : "Back")}");
+            //states. = JaggedArrayCreator.CreateJaggedArray<bool[][]>(Size.Y, Size.X);
+            _states.Unlock(states.Item2);
         }
 
         public unsafe void SetDirty(IntVector2 leftTop, IntVector2 rightBottom)
         {
+            (bool[][], uint) states = _states.LockAndModify();
             IntVector2 area = rightBottom - leftTop;
 
-            fixed (bool* a = &_states[leftTop.Y][leftTop.X])
+            fixed (bool* a = &states.Item1[leftTop.Y][leftTop.X])
             {
                 bool* b = a;
                 var span = new Span<bool>(b, area.X*area.Y);
                 span.Fill(true);
             }
+            _states.Unlock(states.Item2);
         }
 
         public unsafe void SetGlobalDirty()
         {
-            fixed (bool* a = &_states[0][0])
+            (bool[][], uint) states = _states.LockAndModify();
+            fixed (bool* a = &states.Item1[0][0])
             {
                 bool* b = a;
                 var span = new Span<bool>(b, Size.X * Size.Y);
                 span.Fill(true);
             }
+            _states.Unlock(states.Item2);
         }
 
         public void DrawChar(IntVector2 coords, DrawingChar character)
         {
-            _states[coords.Y][coords.X] = true;
+            (bool[][], uint) states = _states.LockAndModify();
+            states.Item1[coords.Y][coords.X] = true;
+            _states.Unlock(states.Item2);
+
             DrawingChars[coords.Y][coords.X] = character;
         }
 
-        public void DrawLine(IntVector2 coords, DrawingChar[] line) {
+        public void DrawLine(IntVector2 coords, DrawingChar[] line)
+        {
+            (bool[][], uint) states = _states.LockAndModify();
             for (int x = 0; x < line.Length; x++) {
-                _states[coords.Y][x + coords.X] = true;
+                states.Item1[coords.Y][x + coords.X] = true;
             }
             Array.Copy(line, 0, DrawingChars[coords.Y], coords.X, line.Length);
         }
 
         public void DrawVLine(IntVector2 coords, DrawingChar[] line)
         {
+            (bool[][], uint) states = _states.LockAndModify();
             for (int y = 0; y < line.Length; y++)
             {
-                _states[y + coords.Y][coords.X] = true;
+                states.Item1[y + coords.Y][coords.X] = true;
                 DrawingChars[y + coords.Y][coords.X] = line[y];
             }
         }
@@ -224,7 +245,9 @@ namespace frware_test
 
             foreach (Tuple<IntVector2, int> line in dirty) {
                 Array.Copy(layer.DrawingChars[line.Item1.Y], line.Item1.X, global.DrawingChars[line.Item1.Y], line.Item1.X, line.Item2);
-                Array.Copy(layer._states[line.Item1.Y], line.Item1.X, global._states[line.Item1.Y], line.Item1.X, line.Item2);
+
+                // FIXME: How to copy states?
+                //Array.Copy(layer.states.Item1[line.Item1.Y], line.Item1.X, global.states.Item1[line.Item1.Y], line.Item1.X, line.Item2);
             }
 
             layer.AcceptDirty();
