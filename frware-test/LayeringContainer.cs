@@ -33,6 +33,7 @@ namespace frware_test
         {
             ContainerUID = s_Random.Next().ToString("x");
             Buffer = new DoubleDrawingBuffer(size);
+            Buffer.AcceptDirty();
             Windows = new ConcurrentDictionary<string, Window>(Environment.ProcessorCount * 2, WindowsCapacity);
         }
 
@@ -54,6 +55,7 @@ namespace frware_test
             {
                 Buffer.DrawWindow(window);
             }
+            Updated = true;
         }
     }
 }
