@@ -1,10 +1,12 @@
 ﻿using Pastel;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
+using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Channels;
@@ -106,7 +108,7 @@ namespace frware_test
 
         public unsafe void SetGlobalDirty()
         {
-            PrintStatePointers();
+            // PrintStatePointers();
 
             (DenseArray<bool> Value, uint Used) states = _states.LockAndModify();
             fixed (bool* a = &states.Value.GetArray()[0])
@@ -117,7 +119,7 @@ namespace frware_test
             }
             _states.Unlock(states.Used);
 
-            PrintStatePointers();
+            // PrintStatePointers();
         }
 
         public unsafe void PrintStatePointers()
@@ -154,6 +156,7 @@ namespace frware_test
             for (int x = 0; x < line.Length; x++) {
                 states.Value[coords.Y, x + coords.X] = true;
             }
+            _states.Unlock(states.Used);
             Array.Copy(line, 0, DrawingChars[coords.Y], coords.X, line.Length);
         }
 
@@ -165,6 +168,7 @@ namespace frware_test
                 states.Value[y + coords.Y, coords.X] = true;
                 DrawingChars[y + coords.Y][coords.X] = line[y];
             }
+            _states.Unlock(states.Used);
         }
 
         public void DrawWindow(Window window)
@@ -220,11 +224,11 @@ namespace frware_test
                 if (dchar.Letter == '\0') {
                     dchar.Letter = ' ';
                     //System.Diagnostics.Debug.WriteLine($"Got DrawingChar '\\0' ({dchar.Color}) on {x},{coords.Y}");
-                    System.Diagnostics.Debug.Write($"0 ");
+                    //System.Diagnostics.Debug.Write($"0 ");
                 } else
                 {
                     //System.Diagnostics.Debug.WriteLine($"Got DrawingChar '{dchar.Letter}' ({dchar.Color}) on {x},{coords.Y}");
-                    System.Diagnostics.Debug.Write($"{dchar.Letter} ");
+                    //System.Diagnostics.Debug.Write($"{dchar.Letter} ");
                 }
 
                 if (ColorGroupChars.Length == 0)
@@ -269,18 +273,49 @@ namespace frware_test
             return renderedString;
         }
 
+        [Obsolete("This method is not yet implemented yet", true)]
         public static DoubleDrawingBuffer operator +(DoubleDrawingBuffer global, DoubleDrawingBuffer layer)
         {
             List<Tuple<IntVector2, int>> dirty = layer.CheckDirty();
 
-            foreach (Tuple<IntVector2, int> line in dirty) {
-                Array.Copy(layer.DrawingChars[line.Item1.Y], line.Item1.X, global.DrawingChars[line.Item1.Y], line.Item1.X, line.Item2);
+            (DenseArray<bool> Value, uint Used) statesGlobal = global._states.LockAndModify();
+            (DenseArray<bool> Value, uint Used) statesContainer = layer._states.LockAndRead();
+
+            foreach (Tuple<IntVector2, int> line in dirty)
+            {
+                //Array.Copy(container.Buffer.DrawingChars[line.Item1.Y], line.Item1.X, global.DrawingChars[line.Item1.Y], line.Item1.X, line.Item2);
+                //Array.Copy(statesContainer.Value.GetArray(), line.Item1.X, statesGlobal.Value.GetArray(), line.Item1.X, line.Item2);
 
                 // FIXME: How to copy states?
                 //Array.Copy(layer.states.Item1[line.Item1.Y], line.Item1.X, global.states.Item1[line.Item1.Y], line.Item1.X, line.Item2);
             }
+            global._states.Unlock(statesGlobal.Used);
+            layer._states.Unlock(statesContainer.Used);
 
             layer.AcceptDirty();
+
+            return global;
+        }
+
+        public static DoubleDrawingBuffer operator +(DoubleDrawingBuffer global, LayeringContainer container)
+        {
+            List<Tuple<IntVector2, int>> dirty = container.Buffer.CheckDirty();
+
+            (DenseArray<bool> Value, uint Used) statesGlobal = global._states.LockAndModify();
+            (DenseArray<bool> Value, uint Used) statesContainer = container.Buffer._states.LockAndRead();
+
+            foreach (Tuple<IntVector2, int> line in dirty)
+            {
+                Array.Copy(container.Buffer.DrawingChars[line.Item1.Y], line.Item1.X, global.DrawingChars[line.Item1.Y], line.Item1.X, line.Item2);
+                Array.Copy(statesContainer.Value.GetArray(), line.Item1.X, statesGlobal.Value.GetArray(), line.Item1.X, line.Item2);
+
+                // FIXME: How to copy states?
+                //Array.Copy(layer.states.Item1[line.Item1.Y], line.Item1.X, global.states.Item1[line.Item1.Y], line.Item1.X, line.Item2);
+            }
+            global._states.Unlock(statesGlobal.Used);
+            container.Buffer._states.Unlock(statesContainer.Used);
+
+            container.Buffer.AcceptDirty();
 
             return global;
         }
