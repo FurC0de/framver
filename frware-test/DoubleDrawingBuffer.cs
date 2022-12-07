@@ -44,7 +44,7 @@ namespace frware_test
             //System.Diagnostics.Debug.WriteLine($"-> x{_states[0].Length}*y{_states.Length}");
             //System.Diagnostics.Debug.WriteLine($"-> expecting x{Size.X}*y{Size.Y}");
 
-            (DenseArray<bool>, uint) states = _states.LockAndRead();
+            (DenseArray<bool> Value, uint Used) states = _states.LockAndRead();
 
             for (int y = 0; y < Size.Y; y++) {
                 int db = -1;
@@ -52,7 +52,7 @@ namespace frware_test
                 
                 for (int x = 0; x < Size.X; x++) {
                     
-                    if (states.Item1[y,x]) {
+                    if (states.Value[y,x]) {
                         if (db == -1)
                             db = x;
                     
@@ -67,7 +67,7 @@ namespace frware_test
                 }
             }
 
-            _states.Unlock(states.Item2);
+            _states.Unlock(states.Used);
 
             //System.Diagnostics.Debug.WriteLine($"<- x{_states[0].Length}*y{_states.Length}"); 
             //System.Diagnostics.Debug.WriteLine($"<- expecting x{Size.X}*y{Size.Y}");
@@ -77,12 +77,17 @@ namespace frware_test
 
         }
 
-
-        public void AcceptDirty() {
-            (DenseArray<bool>, uint) states = _states.LockAndModify();
-            System.Diagnostics.Debug.Write($"a:dirt[{(states.Item2 == 1 ? "Front" : "Back")}],");
-            //states. = JaggedArrayCreator.CreateJaggedArray<bool[][]>(Size.Y, Size.X);
-            _states.Unlock(states.Item2);
+        public unsafe void AcceptDirty()
+        {
+            (DenseArray<bool> Value, uint Used) states = _states.LockAndModify();
+            fixed (bool* a = &states.Value.GetArray()[0])
+            {
+                bool* b = a;
+                var span = new Span<bool>(b, states.Value.Columns * states.Value.Rows);
+                span.Fill(false);
+            }
+            //System.Diagnostics.Debug.Write($"a:dirt[{(states.Used == 1 ? "Front" : "Back")}],");
+            _states.Unlock(states.Used);
         }
 
         //public unsafe void SetDirty(IntVector2 leftTop, IntVector2 rightBottom)
@@ -101,68 +106,63 @@ namespace frware_test
 
         public unsafe void SetGlobalDirty()
         {
-            (DenseArray<bool>, uint) states = _states.LockAndModify();
+            PrintStatePointers();
 
-            
-            for (int y = 0; y < Size.Y; y++)
+            (DenseArray<bool> Value, uint Used) states = _states.LockAndModify();
+            fixed (bool* a = &states.Value.GetArray()[0])
+            {
+                bool* b = a;
+                var span = new Span<bool>(b, states.Value.Columns * states.Value.Rows);
+                span.Fill(true);
+            }
+            _states.Unlock(states.Used);
+
+            PrintStatePointers();
+        }
+
+        public unsafe void PrintStatePointers()
+        {
+            (DenseArray<bool> Value, uint Used) states = _states.LockAndModify();
+
+            for (int y = 0; y < Size.Y*Size.X; y+=Size.X)
             {
                 for (int x = 0; x < Size.X; x++)
                 {
-                    fixed (bool* a = &states.Item1.GetArray()[0])
+                    fixed (bool* a = &states.Value.GetArray()[y+x])
                     {
-                        System.Diagnostics.Debug.Write($"{(int)a} ");
+                        System.Diagnostics.Debug.Write($"{((uint)a):X8}-{(*a ? 1 : 0)} ");
                     }
-                    
+
                 }
                 System.Diagnostics.Debug.WriteLine("");
             }
-
-            //bool* b = a;
-            //var span = new Span<bool>(b, Size.X * Size.Y);
-            //*b = true;
-            
-            /*
-                * (b + 1) = true;
-                * (b + 2) = true;
-                * (b + 3) = true;
-                * (b + 4) = true;
-                * (b + 5) = true;
-                 
-                * (b + Size.X + 2) = true;
-                * (b + Size.X + 3) = true;
-                * (b + Size.X + 4) = true;
-                * (b + Size.X + 5) = true;
-                * (b + Size.X + 6) = true;
-                */
-
-            //span.Fill(true);
-            _states.Unlock(states.Item2);
+            _states.Unlock(states.Used);
         }
 
         public void DrawChar(IntVector2 coords, DrawingChar character)
         {
-            (DenseArray<bool>, uint) states = _states.LockAndModify();
-            states.Item1[coords.Y, coords.X] = true;
-            _states.Unlock(states.Item2);
+            (DenseArray<bool> Value, uint Used) states = _states.LockAndModify();
+            states.Value[coords.Y, coords.X] = true;
+            _states.Unlock(states.Used);
 
             DrawingChars[coords.Y][coords.X] = character;
         }
 
         public void DrawLine(IntVector2 coords, DrawingChar[] line)
         {
-            (DenseArray<bool>, uint) states = _states.LockAndModify();
+            (DenseArray<bool> Value, uint Used) states = _states.LockAndModify();
             for (int x = 0; x < line.Length; x++) {
-                states.Item1[coords.Y, x + coords.X] = true;
+                states.Value[coords.Y, x + coords.X] = true;
             }
             Array.Copy(line, 0, DrawingChars[coords.Y], coords.X, line.Length);
         }
 
         public void DrawVLine(IntVector2 coords, DrawingChar[] line)
         {
-            (DenseArray<bool>, uint) states = _states.LockAndModify();
+            (DenseArray<bool> Value, uint Used) states = _states.LockAndModify();
             for (int y = 0; y < line.Length; y++)
             {
-                states.Item1[y + coords.Y, coords.X] = true;
+                states.Value[y + coords.Y, coords.X] = true;
                 DrawingChars[y + coords.Y][coords.X] = line[y];
             }
         }

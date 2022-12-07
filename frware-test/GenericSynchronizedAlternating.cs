@@ -99,7 +99,7 @@ namespace frware_test
             ValueBack = back;
         }
 
-        public (T, uint) LockAndModify()
+        public (T Value, uint Used) LockAndModify()
         {
             // Check if Front is locked.
             // If not - select Front as used value,
@@ -110,7 +110,7 @@ namespace frware_test
             return (usedValue == 1 ? ValueFront : ValueBack, usedValue);
         }
 
-        public (T, uint) LockAndRead() 
+        public (T Value, uint Used) LockAndRead() 
         {
             uint usedValue;
             switch (GetMod())

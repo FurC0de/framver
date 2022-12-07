@@ -193,12 +193,21 @@ namespace frware_test
         }
 
         /// <summary>
-        /// Gets underlying array itself
+        /// Gets underlying data array itself
         /// </summary>
-        /// <returns>Underlying arrayt</returns>
+        /// <returns>Underlying array with data</returns>
         public T[] GetArray()
         {
             return _dataArray;
-        } 
+        }
+
+        /// <summary>
+        /// Gets underlying array with column indexes
+        /// </summary>
+        /// <returns>Underlying array with column indexes</returns>
+        public int[] GetColumnIndexes()
+        {
+            return _columnIndexes;
+        }
     }
 }
