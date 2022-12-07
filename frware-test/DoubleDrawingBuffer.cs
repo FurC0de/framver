@@ -1,6 +1,7 @@
 ﻿using Pastel;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
@@ -16,34 +17,34 @@ namespace frware_test
     {
         public IntVector2 Size { get; private set; }
 
-        private DrawingChar[][] DrawingChars;
-        private DrawingChar[][] OldDrawingChars;
+        private volatile DrawingChar[][] DrawingChars;
+        private volatile DrawingChar[][] OldDrawingChars;
 
         //private bool[][] _states;
-        private GenericSynchronizedAlternating<bool[][]> _states;
+        private volatile GenericSynchronizedAlternating<DenseArray<bool>> _states;
 
         public DoubleDrawingBuffer(IntVector2 size) {
             this.Size = size;
             this.DrawingChars = JaggedArrayCreator.CreateJaggedArray<DrawingChar[][]>(new int[] { size.Y, size.X });
             this.OldDrawingChars = JaggedArrayCreator.CreateJaggedArray<DrawingChar[][]>(new int[] { size.Y, size.X });
-            this._states = new GenericSynchronizedAlternating<bool[][]>(
-                JaggedArrayCreator.CreateJaggedArray<bool[][]>(new int[] { size.Y, size.X }),
-                JaggedArrayCreator.CreateJaggedArray<bool[][]>(new int[] { size.Y, size.X })
+            this._states = new GenericSynchronizedAlternating<DenseArray<bool>>(
+                new DenseArray<bool>(Size.Y, Size.X),
+                new DenseArray<bool>(Size.Y, Size.X)
             );
 
             System.Diagnostics.Debug.WriteLine("created jagged arrays of length: dc({0},{1}) odc({2},{3}) s({4},{5})", 
                 DrawingChars.Length, DrawingChars[0].Length,
                 OldDrawingChars.Length, OldDrawingChars[0].Length,
-                _states.UnsafeRead(1).Length, _states.UnsafeRead(1)[0].Length);
+                _states.UnsafeRead(1).Columns, _states.UnsafeRead(1).Rows);
         }
 
-        public unsafe List<Tuple<IntVector2, int>> CheckDirty() {
+        public List<Tuple<IntVector2, int>> CheckDirty() {
             List<Tuple<IntVector2, int>> dirtySectors = new List<Tuple<IntVector2, int>>(); // Coords, length
 
             //System.Diagnostics.Debug.WriteLine($"-> x{_states[0].Length}*y{_states.Length}");
             //System.Diagnostics.Debug.WriteLine($"-> expecting x{Size.X}*y{Size.Y}");
 
-            (bool[][], uint) states = _states.LockAndRead();
+            (DenseArray<bool>, uint) states = _states.LockAndRead();
 
             for (int y = 0; y < Size.Y; y++) {
                 int db = -1;
@@ -51,7 +52,7 @@ namespace frware_test
                 
                 for (int x = 0; x < Size.X; x++) {
                     
-                    if (states.Item1[y][x]) {
+                    if (states.Item1[y,x]) {
                         if (db == -1)
                             db = x;
                     
@@ -78,42 +79,70 @@ namespace frware_test
 
 
         public void AcceptDirty() {
-            (bool[][], uint) states = _states.LockAndModify();
-            System.Diagnostics.Debug.WriteLine($"There should go AcceptDirty for {(states.Item2 == 1 ? "Front" : "Back")}");
+            (DenseArray<bool>, uint) states = _states.LockAndModify();
+            System.Diagnostics.Debug.Write($"a:dirt[{(states.Item2 == 1 ? "Front" : "Back")}],");
             //states. = JaggedArrayCreator.CreateJaggedArray<bool[][]>(Size.Y, Size.X);
             _states.Unlock(states.Item2);
         }
 
-        public unsafe void SetDirty(IntVector2 leftTop, IntVector2 rightBottom)
-        {
-            (bool[][], uint) states = _states.LockAndModify();
-            IntVector2 area = rightBottom - leftTop;
+        //public unsafe void SetDirty(IntVector2 leftTop, IntVector2 rightBottom)
+        //{
+        //    (bool[][], uint) states = _states.LockAndModify();
+        //    IntVector2 area = rightBottom - leftTop;
 
-            fixed (bool* a = &states.Item1[leftTop.Y][leftTop.X])
-            {
-                bool* b = a;
-                var span = new Span<bool>(b, area.X*area.Y);
-                span.Fill(true);
-            }
-            _states.Unlock(states.Item2);
-        }
+        //    fixed (bool* a = &states.Item1[leftTop.Y][leftTop.X])
+        //    {
+        //        bool* b = a;
+        //        var span = new Span<bool>(b, area.X*area.Y);
+        //        span.Fill(true);
+        //    }
+        //    _states.Unlock(states.Item2);
+        //}
 
         public unsafe void SetGlobalDirty()
         {
-            (bool[][], uint) states = _states.LockAndModify();
-            fixed (bool* a = &states.Item1[0][0])
+            (DenseArray<bool>, uint) states = _states.LockAndModify();
+
+            
+            for (int y = 0; y < Size.Y; y++)
             {
-                bool* b = a;
-                var span = new Span<bool>(b, Size.X * Size.Y);
-                span.Fill(true);
+                for (int x = 0; x < Size.X; x++)
+                {
+                    fixed (bool* a = &states.Item1.GetArray()[0])
+                    {
+                        System.Diagnostics.Debug.Write($"{(int)a} ");
+                    }
+                    
+                }
+                System.Diagnostics.Debug.WriteLine("");
             }
+
+            //bool* b = a;
+            //var span = new Span<bool>(b, Size.X * Size.Y);
+            //*b = true;
+            
+            /*
+                * (b + 1) = true;
+                * (b + 2) = true;
+                * (b + 3) = true;
+                * (b + 4) = true;
+                * (b + 5) = true;
+                 
+                * (b + Size.X + 2) = true;
+                * (b + Size.X + 3) = true;
+                * (b + Size.X + 4) = true;
+                * (b + Size.X + 5) = true;
+                * (b + Size.X + 6) = true;
+                */
+
+            //span.Fill(true);
             _states.Unlock(states.Item2);
         }
 
         public void DrawChar(IntVector2 coords, DrawingChar character)
         {
-            (bool[][], uint) states = _states.LockAndModify();
-            states.Item1[coords.Y][coords.X] = true;
+            (DenseArray<bool>, uint) states = _states.LockAndModify();
+            states.Item1[coords.Y, coords.X] = true;
             _states.Unlock(states.Item2);
 
             DrawingChars[coords.Y][coords.X] = character;
@@ -121,19 +150,19 @@ namespace frware_test
 
         public void DrawLine(IntVector2 coords, DrawingChar[] line)
         {
-            (bool[][], uint) states = _states.LockAndModify();
+            (DenseArray<bool>, uint) states = _states.LockAndModify();
             for (int x = 0; x < line.Length; x++) {
-                states.Item1[coords.Y][x + coords.X] = true;
+                states.Item1[coords.Y, x + coords.X] = true;
             }
             Array.Copy(line, 0, DrawingChars[coords.Y], coords.X, line.Length);
         }
 
         public void DrawVLine(IntVector2 coords, DrawingChar[] line)
         {
-            (bool[][], uint) states = _states.LockAndModify();
+            (DenseArray<bool>, uint) states = _states.LockAndModify();
             for (int y = 0; y < line.Length; y++)
             {
-                states.Item1[y + coords.Y][coords.X] = true;
+                states.Item1[y + coords.Y, coords.X] = true;
                 DrawingChars[y + coords.Y][coords.X] = line[y];
             }
         }
@@ -184,17 +213,18 @@ namespace frware_test
             String ColorGroupChars = "";
 
             for (int x = coords.X; x < coords.X + length; x++) {
-                DrawingChar dchar = DrawingChars[coords.Y][x];
+                DrawingChar dchar = new DrawingChar(DrawingChars[coords.Y][x].Letter, DrawingChars[coords.Y][x].Color);
+
                 //System.Diagnostics.Debug.WriteLine($"Is DrawingChar.Letter null/0 {dchar.Letter == null}/{dchar.Letter == '\0'}");
                 //System.Diagnostics.Debug.WriteLine($"Is DrawingChar.Color null/empty {dchar.Color == null}/{dchar.Color == ""}");
                 if (dchar.Letter == '\0') {
                     dchar.Letter = ' ';
                     //System.Diagnostics.Debug.WriteLine($"Got DrawingChar '\\0' ({dchar.Color}) on {x},{coords.Y}");
-                    //System.Diagnostics.Debug.Write($"0 ");
+                    System.Diagnostics.Debug.Write($"0 ");
                 } else
                 {
                     //System.Diagnostics.Debug.WriteLine($"Got DrawingChar '{dchar.Letter}' ({dchar.Color}) on {x},{coords.Y}");
-                    //System.Diagnostics.Debug.Write($"{dchar.Letter} ");
+                    System.Diagnostics.Debug.Write($"{dchar.Letter} ");
                 }
 
                 if (ColorGroupChars.Length == 0)

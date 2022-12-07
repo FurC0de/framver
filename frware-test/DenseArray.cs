@@ -191,5 +191,14 @@ namespace frware_test
                 this[i, column] = items[i];
             }
         }
+
+        /// <summary>
+        /// Gets underlying array itself
+        /// </summary>
+        /// <returns>Underlying arrayt</returns>
+        public T[] GetArray()
+        {
+            return _dataArray;
+        } 
     }
 }
