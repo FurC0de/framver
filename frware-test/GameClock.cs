@@ -1,8 +1,5 @@
-﻿#region Using Statements
-/* System References :: */
-using System;
+﻿using System;
 using System.Diagnostics;
-#endregion
 
 internal sealed class GameClock
 {
@@ -32,7 +29,8 @@ internal sealed class GameClock
 
     internal GameClock(bool enableBenchmarking)
     {
-        if (enableBenchmarking) {
+        if (enableBenchmarking)
+        {
             BenchmarkingEnabled = true;
             Frametimes = new List<double>(36000);
         }
@@ -40,30 +38,36 @@ internal sealed class GameClock
         Reset();
     }
 
-    internal void Start() {
+    internal void Start()
+    {
         IsRunning = true;
         Count = Timestamp;
     }
 
-    internal void Stop() {
+    internal void Stop()
+    {
         IsRunning = false;
     }
 
-    internal void Reset() {
+    internal void Reset()
+    {
         Count = Timestamp;
         Elapsed = TimeSpan.Zero;
         Total = TimeSpan.Zero;
         IsRunning = false;
     }
 
-    internal void Restart() {
-        Reset(); 
+    internal void Restart()
+    {
+        Reset();
         Start();
     }
 
-    internal void Step() {
-        if (IsRunning) {
-            long last = Count; 
+    internal void Step()
+    {
+        if (IsRunning)
+        {
+            long last = Count;
             Count = Timestamp;
             long offset = Count - last;
             Elapsed = DeltaToTimeSpan(offset);
@@ -74,11 +78,12 @@ internal sealed class GameClock
             if (BenchmarkingEnabled)
                 Frametimes.Add(Elapsed.TotalMilliseconds);
 
-            Total += Elapsed; 
+            Total += Elapsed;
         }
     }
 
-    private TimeSpan DeltaToTimeSpan(long delta) {
+    private TimeSpan DeltaToTimeSpan(long delta)
+    {
         return TimeSpan.FromTicks((delta * NSFactor) / Frequency);
     }
 }

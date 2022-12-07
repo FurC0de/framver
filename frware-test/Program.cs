@@ -13,9 +13,9 @@ namespace frware_test {
         #endregion
 
         #region Clocks
-        public static GameClock RenderClock = new GameClock();
-        public static GameClock DataClock = new GameClock();
-        public static GameClock InputClock = new GameClock();
+        public static GameClock RenderClock = new GameClock(true);
+        public static GameClock DataClock = new GameClock(false);
+        public static GameClock InputClock = new GameClock(false);
         #endregion
 
         static void Main() {
@@ -26,28 +26,13 @@ namespace frware_test {
 #pragma warning disable CA1416
                 Console.SetWindowSize(1, 1);
                 Console.SetBufferSize(Size.X, Size.Y);
-                WindowsConsoleUtilities.MakeBorderless();
+                Console.SetWindowSize(120, 60);
+                //WindowsConsoleUtilities.MakeBorderless();
                 WindowsConsoleUtilities.DisableQuickEdit();
 #pragma warning restore CA1416
             }
 
             Console.Clear();
-
-            var spectrum = new (string color, string letter)[]
-            {
-                ("#124542", "a"),
-                ("#185C58", "b"),
-                ("#1E736E", "c"),
-                ("#248A84", "d"),
-                ("#20B2AA", "e"),
-                ("#3FBDB6", "f"),
-                ("#5EC8C2", "g"),
-                ("#7DD3CE", "i"),
-                ("#9CDEDA", "j"),
-                ("#BBE9E6", "k")
-            };
-
-            Renderer.Buffer.SetGlobalDirty();
 
             // Console.WriteLine(string.Join("", spectrum.Select(s => s.letter.Pastel(s.color))));
             CancellationTokenSource cancelSource = new CancellationTokenSource();
@@ -70,11 +55,26 @@ namespace frware_test {
                     }
                     else
                     {
-                        WindowsConsoleUtilities.DisableBorderless();
+                        //WindowsConsoleUtilities.DisableBorderless();
                         WindowsConsoleUtilities.EnableQuickEdit();
 
-                        Console.WriteLine($"Data latency max    : {DataClock.ElapsedMax.TotalMilliseconds}");
-                        Console.WriteLine($"Render latencty max : {RenderClock.ElapsedMax.TotalMilliseconds}");
+                        Console.Clear();
+                        Console.SetCursorPosition(0, 0);
+
+                        Console.WriteLine($"Data latency");
+                        Console.WriteLine($"    max : {DataClock.ElapsedMax.TotalMilliseconds,7:0.00} ms");
+
+                        // TODO: Move calculations to GameClock.Stop()
+                        RenderClock.Frametimes.Sort((a, b) => b.CompareTo(a));
+
+                        Console.WriteLine($"Render latency ({RenderClock.Frametimes.Count} samples)");
+                        Console.WriteLine($"    max : {RenderClock.ElapsedMax.TotalMilliseconds,7:0.00} ms");
+                        Console.WriteLine($"    avg : {RenderClock.Frametimes.Average(),7:0.00} ms");
+                        Console.WriteLine($"    10% : {RenderClock.Frametimes[RenderClock.Frametimes.Count / 10],7:0.00} ms");
+                        Console.WriteLine($"     1% : {RenderClock.Frametimes[RenderClock.Frametimes.Count / 100],7:0.00} ms");
+                        Console.WriteLine($"   0.1% : {RenderClock.Frametimes[RenderClock.Frametimes.Count / 1000],7:0.00} ms");
+                        Console.WriteLine($"     hi : {RenderClock.Frametimes[0],7:0.00} ms");
+                        Console.WriteLine($"    low : {RenderClock.Frametimes[^1],7:0.00} ms");
 
                         Environment.Exit(0);
                     }
@@ -84,53 +84,15 @@ namespace frware_test {
         }
 
         static public void testDataThreadFunc(CancellationToken cancelToken) {
-            /*
-            var spectrum = new (string color, string line)[]
-            {
-                ("#124542", "abcdefghij"),
-                ("#185C58", "bcdefghija"),
-                ("#1E736E", "cdefghijab"),
-                ("#248A84", "defghijabc"),
-                ("#20B2AA", "efghijabcd"),
-                ("#3FBDB6", "fghijabcde"),
-                ("#5EC8C2", "ghijabcdef"),
-                ("#7DD3CE", "hijabcdefg"),
-                ("#9CDEDA", "ijabcdefgh"),
-                ("#BBE9E6", "jabcdefghi")
-            };
 
-            int testInt = 0;
+            LayeringContainer container_A = new LayeringContainer(Size);
+            Window window_A = new Window(new IntVector2(30,10), new IntVector2(1, 12));
+            Renderer.AddLayeringContainer(container_A);
+            container_A.Buffer.DrawLine(new IntVector2(1, 10), ($"I am a container with a window [Buffer_Direct_Access]").ToDrawingCharArray());
+            container_A.AddWindow(window_A);
+            container_A.UpdateBuffer();
 
-            IntVector2 coords0 = new IntVector2(0, 0);
-            IntVector2 coords1 = new IntVector2(0, 1);
-            IntVector2 coords2 = new IntVector2(0, 2);
-            IntVector2 coords3 = new IntVector2(0, 3);
-            IntVector2 coords4 = new IntVector2(3, 4);
-
-            
-
-            Renderer.DrawLine(coords0, ("#AAAAAA", " ╔═ Coordinates ══════════════╗"));
-            Renderer.DrawLine(coords1, ("#AAAAAA", " ║ y" + Renderer.Buffer.DrawingChars.Length.ToString() + "  ;"));
-            Renderer.DrawLine(coords2, ("#AAAAAA", " ║ x" + Renderer.Buffer.DrawingChars[0].Length.ToString() + "  ;"));
-            Renderer.DrawLine(coords3, ("#AAAAAA", " ╚════════════════════════════╝"));
-
-            Window testWindow1 = new Window(new IntVector2(22,8), new IntVector2(3, 6));
-            testWindow1.Init();
-            testWindow1.SetTitle("Title_A");
-            Renderer.DrawWindow(testWindow1);
-
-            Window testWindow2 = new Window(new IntVector2(110, 50), new IntVector2(10, 10));
-            testWindow2.Init();
-            testWindow2.SetTitle("Title_B");
-            Renderer.DrawWindow(testWindow2);
-
-            Window testWindow3 = new Window(new IntVector2(7, 8), new IntVector2(3, 26));
-            testWindow3.Init();
-            testWindow3.SetTitle("Title");
-            Renderer.DrawWindow(testWindow3);
-            */
-
-            Renderer.AddLayeringContainer(new LayeringContainer(Size));
+            Renderer.Buffer.SetGlobalDirty();
 
             DataClock.Start();
 
@@ -143,7 +105,7 @@ namespace frware_test {
                 }
 
                 DataClock.Step();
-                Thread.Sleep(100);
+                Thread.Sleep(15);
 
                 #region DebugLines
                 Renderer.DrawLine(new IntVector2(1, 1), ($"Data   : {DataClock.Elapsed.TotalMilliseconds}").ToDrawingCharArray());
@@ -151,7 +113,7 @@ namespace frware_test {
 
                 Renderer.DrawLine(new IntVector2(1, 2), ($"Render : {RenderClock.Elapsed.TotalMilliseconds}").ToDrawingCharArray());
                 Renderer.DrawLine(new IntVector2(19, 2), ($"Max : {RenderClock.ElapsedMax.TotalMilliseconds}").ToDrawingCharArray());
-                Renderer.DrawLine(new IntVector2(35, 2), ($"Delay : {Math.Clamp(60 - ((int)RenderClock.Elapsed.TotalMilliseconds), 0, 30)}").ToDrawingCharArray());
+                Renderer.DrawLine(new IntVector2(37, 2), ($"Delay : {Math.Clamp(60 - ((int)RenderClock.Elapsed.TotalMilliseconds), 0, 30)}").ToDrawingCharArray());
 
                 Renderer.DrawLine(new IntVector2(1, 4), ($"Containers ({Renderer.LayeringContainers.Count}):").ToDrawingCharArray());
                 for (int i = 0; i < Renderer.LayeringContainers.Count; i++)
@@ -160,14 +122,11 @@ namespace frware_test {
                 }
                 #endregion
 
-                //Renderer.DrawLine(coords4, spectrum[testInt]);
-                //testInt = (testInt + 1) % 10;
+                #region Container_A
+                #endregion
 
                 // WEIRD FIX: Fixes stutter.
-                Console.MoveBufferArea(0,0,0,0,0,0); 
-
-                //Console.SetCursorPosition(80, 50);
-                //Console.WriteLine("DATA "+dataClock.Elapsed.TotalMilliseconds);
+                // Console.MoveBufferArea(0,0,0,0,0,0); 
             }
         }
 
@@ -183,8 +142,8 @@ namespace frware_test {
 
                 Renderer.Draw();
 
+                Thread.Sleep(Math.Clamp(60 - ((int)RenderClock.Elapsed.TotalMilliseconds), 0, 30));
                 RenderClock.Step();
-                Thread.Sleep(Math.Clamp(60-((int)RenderClock.Elapsed.TotalMilliseconds), 0, 30));
             }
         }
     }
