@@ -6,16 +6,10 @@ using System.Diagnostics;
 
 internal sealed class GameClock
 {
-    internal GameClock() {
-        Reset();
-    }
+    private long Count;
+    private const long NSFactor = 10000000L;
 
-    long count;
-    const long nsfactor = 10000000L;
-
-    public bool IsRunning { get { return isrunning; } }
-
-    bool isrunning = false;
+    public bool IsRunning { get; private set; }
 
     internal long Frequency { get { return Stopwatch.Frequency; } }
 
@@ -23,32 +17,43 @@ internal sealed class GameClock
 
     internal static long Timestamp { get { return Stopwatch.GetTimestamp(); } }
 
-    internal TimeSpan Elapsed { get { return elapsed; } }
+    internal TimeSpan Elapsed { get; private set; }
 
-    TimeSpan elapsed;
+    internal TimeSpan Total { get; private set; }
 
-    internal TimeSpan ElapsedMax { get { return elapsedMax; } }
 
-    TimeSpan elapsedMax;
+    #region Benchmarking
+    internal bool BenchmarkingEnabled { get; private set; }
 
-    internal TimeSpan Total { get { return total; } }
+    internal TimeSpan ElapsedMax { get; private set; }
 
-    TimeSpan total;
+    internal List<double> Frametimes { get; private set; }
+    #endregion
+
+    internal GameClock(bool enableBenchmarking)
+    {
+        if (enableBenchmarking) {
+            BenchmarkingEnabled = true;
+            Frametimes = new List<double>(36000);
+        }
+
+        Reset();
+    }
 
     internal void Start() {
-        isrunning = true;
-        count = Timestamp;
+        IsRunning = true;
+        Count = Timestamp;
     }
 
     internal void Stop() {
-        isrunning = false;
+        IsRunning = false;
     }
 
     internal void Reset() {
-        count = Timestamp;
-        elapsed = TimeSpan.Zero;
-        total = TimeSpan.Zero;
-        isrunning = false;
+        Count = Timestamp;
+        Elapsed = TimeSpan.Zero;
+        Total = TimeSpan.Zero;
+        IsRunning = false;
     }
 
     internal void Restart() {
@@ -57,20 +62,23 @@ internal sealed class GameClock
     }
 
     internal void Step() {
-        if (isrunning) {
-            long last = count; 
-            count = Timestamp;
-            long offset = count - last;
-            elapsed = DeltaToTimeSpan(offset);
+        if (IsRunning) {
+            long last = Count; 
+            Count = Timestamp;
+            long offset = Count - last;
+            Elapsed = DeltaToTimeSpan(offset);
 
-            if (elapsed > elapsedMax)
-                elapsedMax = elapsed;
+            if (Elapsed > ElapsedMax)
+                ElapsedMax = Elapsed;
 
-            total += elapsed; 
+            if (BenchmarkingEnabled)
+                Frametimes.Add(Elapsed.TotalMilliseconds);
+
+            Total += Elapsed; 
         }
     }
 
     private TimeSpan DeltaToTimeSpan(long delta) {
-        return TimeSpan.FromTicks((delta * nsfactor) / Frequency);
+        return TimeSpan.FromTicks((delta * NSFactor) / Frequency);
     }
 }
